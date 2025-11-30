@@ -9,85 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    :root {
-      --bg: #0e0e0e;
-      --bg-secondary: #141414;
-      --accent: #e81c5a;
-      --accent-hover: #ff2d6e;
-      --text: #ffffff;
-      --text-secondary: rgba(255, 255, 255, 0.7);
-      --border: rgba(255, 255, 255, 0.1);
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
-    }
-    body::-webkit-scrollbar { width: 5px; }
-    body::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-    body::-webkit-scrollbar-track { background: transparent; }
-    
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .hero-content > * {
-      animation: fadeInUp 0.8s ease-out;
-    }
-    
-    .hero-content > *:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    
-    .hero-content > *:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-    
-    .hero-content > *:nth-child(4) {
-      animation-delay: 0.6s;
-    }
-    
-    /* Responsive */
-    @media (max-width: 1024px) {
-      .hero > div {
-        grid-template-columns: 1fr !important;
-        gap: 3rem !important;
-      }
-      .hero-visual > div {
-        transform: none !important;
-      }
-      .location-section > div > div {
-        grid-template-columns: 1fr !important;
-      }
-    }
-    
-    @media (max-width: 768px) {
-      .nav-links {
-        display: none !important;
-      }
-      .nav-toggle {
-        display: flex !important;
-      }
-      .services-section > div > div {
-        grid-template-columns: 1fr !important;
-      }
-      .team-grid {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
-      }
-    }
-  </style>
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -666,26 +587,26 @@
   </div>
 
   <!-- Navigation -->
-  <nav class="main-nav" style="position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: rgba(14, 14, 14, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 1rem 0;">
-    <div class="nav-container" style="max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between;">
-      <a href="accueil.html" class="logo" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text);">
-        <img src="img/V.png" alt="Logo Vespucci" style="width: 50px; height: 50px; object-fit: contain;">
-        <div style="display: flex; flex-direction: column;">
-          <span style="font-size: 1.2rem; font-weight: 700; letter-spacing: 2px;">VESPUCCI</span>
-          <span style="font-size: 0.7rem; opacity: 0.7; letter-spacing: 1px;">ESTHÉTIQUE</span>
+  <nav class="main-nav">
+    <div class="nav-container">
+      <a href="accueil.html" class="logo">
+        <img src="img/V.png" alt="Logo Vespucci" class="logo-image">
+        <div class="logo-text-wrapper">
+        <span class="logo-text">VESPUCCI</span>
+        <span class="logo-subtitle">ESTHÉTIQUE</span>
         </div>
       </a>
-      <div class="nav-links" style="display: flex; gap: 2rem; align-items: center;">
-        <a href="accueil.html" class="nav-item active" style="color: var(--text); text-decoration: none; font-weight: 500; position: relative; transition: color 0.3s;">Accueil</a>
-        <a href="tarifs.html" class="nav-item" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; position: relative; transition: color 0.3s;">Tarifs</a>
-        <a href="femmes.html" class="nav-item" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; position: relative; transition: color 0.3s;">Femmes</a>
-        <a href="hommes.html" class="nav-item" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; position: relative; transition: color 0.3s;">Hommes</a>
-        <a href="partenaires.html" class="nav-item" style="color: var(--text-secondary); text-decoration: none; font-weight: 500; position: relative; transition: color 0.3s;">Partenaires</a>
+      <div class="nav-links">
+        <a href="accueil.html" class="nav-item active">Accueil</a>
+        <a href="tarifs.html" class="nav-item">Tarifs</a>
+        <a href="femmes.html" class="nav-item">Femmes</a>
+        <a href="hommes.html" class="nav-item">Hommes</a>
+        <a href="partenaires.html" class="nav-item">Partenaires</a>
       </div>
-      <button class="nav-toggle" id="navToggle" style="display: none; background: none; border: none; cursor: pointer; flex-direction: column; gap: 5px;">
-        <span style="width: 25px; height: 2px; background: var(--text); transition: all 0.3s;"></span>
-        <span style="width: 25px; height: 2px; background: var(--text); transition: all 0.3s;"></span>
-        <span style="width: 25px; height: 2px; background: var(--text); transition: all 0.3s;"></span>
+      <button class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
       </button>
     </div>
   </nav>
@@ -713,370 +634,289 @@
   </div>
 
   <!-- Hero Section -->
-  <section class="hero" style="min-height: 100vh; display: flex; align-items: center; position: relative; padding: 8rem 2rem 4rem; overflow: hidden;">
-    <div style="max-width: 1400px; margin: 0 auto; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
-      <div class="hero-content" style="z-index: 2;">
-        <div style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 2rem; font-size: 0.9rem; color: var(--accent);">
-          Excellence depuis 2023
-        </div>
-        <h1 style="font-size: clamp(3rem, 8vw, 6rem); font-weight: 900; line-height: 1.1; margin-bottom: 2rem; background: linear-gradient(135deg, #fff 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-          L'ART DE<br>VOTRE BEAUTÉ<br>RÉVÉLÉ
-        </h1>
-        <p style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 3rem; line-height: 1.8; max-width: 500px;">
-          Un salon où l'expertise rencontre l'élégance. Chaque coupe est une œuvre d'art, chaque client une priorité.
-        </p>
-        <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
-          <a href="#" class="btn btn-primary" id="openBookingModal" style="padding: 1rem 2.5rem; background: var(--accent); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.3s; border: none; cursor: pointer;">
-            <span>Réserver</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a href="#services" style="padding: 1rem 2.5rem; background: transparent; color: var(--text); text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid var(--border); transition: all 0.3s;">
-            Découvrir
-          </a>
-        </div>
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>Excellence depuis 2023</span>
       </div>
-      <div class="hero-visual" style="position: relative; z-index: 1;">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; transform: perspective(1000px) rotateY(-5deg);">
-          <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(232, 28, 90, 0.3);">
-            <img src="img/2.png" alt="L'Esthétique Vespucci" class="hero-image" style="width: 100%; height: 500px; object-fit: cover; display: block;">
-            <div style="position: absolute; bottom: 1rem; left: 1rem; padding: 0.5rem 1rem; background: rgba(0, 0, 0, 0.8); border-radius: 8px; color: var(--accent); font-weight: 600;">Patron</div>
-          </div>
-          <div style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(232, 28, 90, 0.3); margin-top: 3rem;">
-            <img src="img/1.png" alt="L'Esthétique Vespucci" class="hero-image" style="width: 100%; height: 500px; object-fit: cover; display: block;">
-            <div style="position: absolute; bottom: 1rem; left: 1rem; padding: 0.5rem 1rem; background: rgba(0, 0, 0, 0.8); border-radius: 8px; color: var(--accent); font-weight: 600;">Co-Patron</div>
-          </div>
-        </div>
+      <h1 class="hero-title">
+        <span class="title-line">L'ART DE</span>
+        <span class="title-line highlight">VOTRE BEAUTÉ</span>
+        <span class="title-line">RÉVÉLÉ</span>
+      </h1>
+      <p class="hero-description">
+        Un salon où l'expertise rencontre l'élégance. 
+        Chaque coupe est une œuvre d'art, chaque client une priorité.
+      </p>
+      <div class="hero-cta">
+        <a href="#" class="btn btn-primary" id="openBookingModal">
+          <span>Réserver</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="#services" class="btn btn-secondary">
+          <span>Découvrir</span>
+        </a>
       </div>
     </div>
-    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 50%, rgba(232, 28, 90, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(232, 28, 90, 0.1) 0%, transparent 50%); pointer-events: none; z-index: 0;"></div>
+    <div class="hero-visual">
+      <div class="hero-visual-container">
+        <div class="hero-image-wrapper hero-image-wrapper-left">
+          <div class="image-glow"></div>
+          <img src="img/2.png" alt="L'Esthétique Vespucci" class="hero-image">
+          <div class="hero-status-overlay">
+            <span class="hero-status-text">Patron</span>
+        </div>
+        </div>
+        <div class="hero-image-wrapper hero-image-wrapper-right">
+          <div class="image-glow"></div>
+          <img src="img/1.png" alt="L'Esthétique Vespucci" class="hero-image">
+          <div class="hero-status-overlay">
+            <span class="hero-status-text">Co-Patron</span>
+        </div>
+      </div>
+      </div>
+    </div>
   </section>
 
   <!-- Gallery Carousel -->
-  <section class="gallery-section" style="padding: 6rem 2rem; position: relative; background: var(--bg-secondary);">
-    <div style="max-width: 1400px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">Galerie</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Nos réalisations</h2>
-      </div>
-      <div class="gallery-container" style="overflow: hidden; position: relative;">
-        <div class="gallery-track" style="display: flex; gap: 2rem; animation: scrollGallery 60s linear infinite;">
-          <!-- Gallery items will be loaded dynamically -->
+  <section class="gallery-section">
+    <div class="section-header">
+      <span class="section-tag">Galerie</span>
+      <h2 class="section-title">Nos réalisations</h2>
+    </div>
+    <div class="gallery-container">
+      <div class="gallery-track">
+        <div class="gallery-item">
+          <img src="img/carousel/1.png" alt="Réalisation 1">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/2.png" alt="Réalisation 2">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/3.png" alt="Réalisation 3">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/4.png" alt="Réalisation 4">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/5.png" alt="Réalisation 5">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/6.png" alt="Réalisation 6">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <!-- Duplicate for infinite scroll -->
+        <div class="gallery-item">
+          <img src="img/carousel/1.png" alt="Réalisation 1">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/2.png" alt="Réalisation 2">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/3.png" alt="Réalisation 3">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
         </div>
       </div>
     </div>
-    <style>
-      @keyframes scrollGallery {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-      }
-      .gallery-item {
-        flex-shrink: 0;
-        width: 400px;
-        height: 500px;
-        position: relative;
-        border-radius: 16px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: transform 0.3s;
-      }
-      .gallery-item:hover {
-        transform: scale(1.05);
-      }
-      .gallery-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .gallery-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-        padding: 2rem;
-        color: white;
-        transform: translateY(100%);
-        transition: transform 0.3s;
-      }
-      .gallery-item:hover .gallery-overlay {
-        transform: translateY(0);
-      }
-    </style>
   </section>
 
   <!-- Services Section -->
-  <section id="services" class="services-section" style="padding: 6rem 2rem; position: relative;">
-    <div style="max-width: 1400px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">Services</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Nos catalogues</h2>
+  <section id="services" class="services-section">
+    <div class="section-header">
+      <span class="section-tag">Services</span>
+      <h2 class="section-title">Nos catalogues</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card" data-tilt>
+        <div class="service-number">01</div>
+        <div class="service-content">
+          <h3>Hommes</h3>
+          <p>Coupes masculines modernes et classiques, adaptées à votre style et à votre personnalité.</p>
+          <a href="hommes.html" class="service-link">
+            <span>Explorer</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
-        <div class="service-card" data-tilt style="position: relative; padding: 3rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: all 0.3s; cursor: pointer;">
-          <div style="font-size: 4rem; font-weight: 900; color: rgba(232, 28, 90, 0.1); position: absolute; top: -1rem; right: -1rem;">01</div>
-          <div style="position: relative; z-index: 2;">
-            <h3 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">Hommes</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.8;">Coupes masculines modernes et classiques, adaptées à votre style et à votre personnalité.</p>
-            <a href="hommes.html" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent); text-decoration: none; font-weight: 600; transition: gap 0.3s;">
-              <span>Explorer</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
-          </div>
+      <div class="service-card" data-tilt>
+        <div class="service-number">02</div>
+        <div class="service-content">
+          <h3>Femmes</h3>
+          <p>Coupes féminines tendances et uniques, pour révéler votre beauté naturelle.</p>
+          <a href="femmes.html" class="service-link">
+            <span>Explorer</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
         </div>
-        <div class="service-card" data-tilt style="position: relative; padding: 3rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: all 0.3s; cursor: pointer;">
-          <div style="font-size: 4rem; font-weight: 900; color: rgba(232, 28, 90, 0.1); position: absolute; top: -1rem; right: -1rem;">02</div>
-          <div style="position: relative; z-index: 2;">
-            <h3 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">Femmes</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.8;">Coupes féminines tendances et uniques, pour révéler votre beauté naturelle.</p>
-            <a href="femmes.html" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--accent); text-decoration: none; font-weight: 600; transition: gap 0.3s;">
-              <span>Explorer</span>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </a>
-          </div>
-        </div>
+        <div class="service-bg"></div>
       </div>
     </div>
   </section>
 
   <!-- Team Section -->
-  <section class="team-section" style="padding: 6rem 2rem; background: var(--bg-secondary);">
-    <div style="max-width: 1400px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">Équipe</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Rencontrez nos experts</h2>
-      </div>
-      <div class="team-grid" id="teamGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem;">
-        <!-- Team members will be loaded dynamically -->
-      </div>
+  <section class="team-section">
+    <div class="section-header">
+      <span class="section-tag">Équipe</span>
+      <h2 class="section-title">Rencontrez nos experts</h2>
     </div>
-    <style>
-      .team-card {
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s;
-        cursor: pointer;
-      }
-      .team-card:hover {
-        transform: translateY(-10px);
-        border-color: var(--accent);
-        box-shadow: 0 20px 40px rgba(232, 28, 90, 0.2);
-      }
-      .team-image-wrapper {
-        position: relative;
-        width: 100%;
-        height: 350px;
-        overflow: hidden;
-      }
-      .team-image-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s;
-      }
-      .team-card:hover .team-image-wrapper img {
-        transform: scale(1.1);
-      }
-      .team-info {
-        padding: 1.5rem;
-      }
-      .team-info h3 {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        color: var(--text);
-      }
-      .team-info p {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-      }
-    </style>
+    <div class="team-grid" id="teamGrid">
+      <!-- Team members will be loaded dynamically -->
+    </div>
   </section>
 
   <!-- Map Section -->
-  <section class="location-section" style="padding: 6rem 2rem;">
-    <div style="max-width: 1400px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">Localisation</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Nous trouver</h2>
+  <section class="location-section">
+    <div class="section-header">
+      <span class="section-tag">Localisation</span>
+      <h2 class="section-title">Nous trouver</h2>
+    </div>
+    <div class="location-container">
+      <div class="location-map">
+        <img src="img/map.png" alt="Carte">
       </div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
-        <div class="location-map" style="border-radius: 20px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
-          <img src="img/map.png" alt="Carte" style="width: 100%; height: 100%; object-fit: cover; display: block;">
+      <div class="location-addresses">
+        <div class="address-item">
+          <h3>Coiffeur</h3>
+          <p>📍 Magellan Avenue, Vespucci</p>
         </div>
-        <div class="location-addresses" style="display: flex; flex-direction: column; gap: 2rem;">
-          <div class="address-item" style="padding: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; transition: all 0.3s;">
-            <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">Coiffeur</h3>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">📍 Magellan Avenue, Vespucci</p>
-          </div>
-          <div class="address-item" style="padding: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; transition: all 0.3s;">
-            <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--accent);">Tatoueur</h3>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">📍 Aguja Street & Bay City Avenue</p>
-          </div>
+        <div class="address-item">
+          <h3>Tatoueur</h3>
+          <p>📍 Aguja Street & Bay City Avenue</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Reviews Section -->
-  <section class="reviews-section" style="padding: 6rem 2rem; background: var(--bg-secondary); position: relative; overflow: hidden;">
-    <div style="max-width: 1400px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">Témoignages</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Ce que disent nos clients</h2>
-      </div>
-      <div class="reviews-container" style="overflow: hidden; position: relative; margin-bottom: 3rem;">
-        <div class="reviews-track" id="reviewsTrack" style="display: flex; gap: 2rem; animation: scrollReviews 180s linear infinite;">
-          <!-- Reviews will be randomly shuffled by JavaScript -->
-        </div>
-      </div>
-      <div style="text-align: center;">
-        <a href="#" class="btn btn-outline" id="openReviewModal" style="padding: 1rem 2.5rem; background: transparent; color: var(--accent); text-decoration: none; border-radius: 8px; font-weight: 600; border: 1px solid var(--accent); transition: all 0.3s; display: inline-block;">
-          Écrire un avis
-        </a>
+  <section class="reviews-section">
+    <div class="section-header">
+      <span class="section-tag">Témoignages</span>
+      <h2 class="section-title">Ce que disent nos clients</h2>
+    </div>
+    <div class="reviews-container">
+      <div class="reviews-track" id="reviewsTrack">
+        <!-- Reviews will be randomly shuffled by JavaScript -->
       </div>
     </div>
-    <style>
-      @keyframes scrollReviews {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-      }
-      .review-card {
-        flex-shrink: 0;
-        width: 400px;
-        padding: 2rem;
-        background: var(--bg);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-      }
-      .review-stars {
-        color: var(--accent);
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-      }
-      .review-card h3 {
-        font-size: 1.3rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        color: var(--text);
-      }
-      .review-card p {
-        color: var(--text-secondary);
-        line-height: 1.8;
-        margin-bottom: 1.5rem;
-      }
-      .review-author {
-        color: var(--accent);
-        font-weight: 600;
-      }
-    </style>
+    <div class="reviews-cta">
+      <a href="#" class="btn btn-outline" id="openReviewModal">Écrire un avis</a>
+    </div>
   </section>
 
   <!-- FAQ Section -->
-  <section id="faq" class="faq-section" style="padding: 6rem 2rem;">
-    <div style="max-width: 1000px; margin: 0 auto;">
-      <div style="text-align: center; margin-bottom: 4rem;">
-        <span style="display: inline-block; padding: 0.5rem 1.5rem; background: rgba(232, 28, 90, 0.1); border: 1px solid var(--accent); border-radius: 50px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--accent);">FAQ</span>
-        <h2 style="font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; margin-top: 1rem;">Questions fréquentes</h2>
+  <section id="faq" class="faq-section">
+    <div class="section-header">
+      <span class="section-tag">FAQ</span>
+      <h2 class="section-title">Questions fréquentes</h2>
+    </div>
+    <div class="faq-container">
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Comment faire pour se faire recruter ?</h3>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Nous privilégions les rencontres spontanées !</p>
+          <p><strong>Recrutement sans CV :</strong> Si tu es motivé(e) et que tu penses correspondre à notre équipe, viens directement nous rencontrer. Nous te donnerons toujours une date et une heure à l'avance pour nous rencontrer.</p>
+          <p><strong>Recrutement sur le moment :</strong> En fonction des besoins, nous recrutons parfois directement sur place. Sois prêt(e) à nous surprendre !</p>
+        </div>
       </div>
-      <div class="faq-container" style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <div class="faq-item" style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s;">
-          <div class="faq-question" style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text);">Comment faire pour se faire recruter ?</h3>
-            <span class="faq-icon" style="font-size: 2rem; color: var(--accent); transition: transform 0.3s;">+</span>
-          </div>
-          <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s; padding: 0 2rem;">
-            <div style="padding-bottom: 2rem; color: var(--text-secondary); line-height: 1.8;">
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Réponse :</strong> Nous privilégions les rencontres spontanées !</p>
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Recrutement sans CV :</strong> Si tu es motivé(e) et que tu penses correspondre à notre équipe, viens directement nous rencontrer. Nous te donnerons toujours une date et une heure à l'avance pour nous rencontrer.</p>
-              <p><strong style="color: var(--accent);">Recrutement sur le moment :</strong> En fonction des besoins, nous recrutons parfois directement sur place. Sois prêt(e) à nous surprendre !</p>
-            </div>
-          </div>
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Quels services proposez-vous exactement ?</h3>
+          <span class="faq-icon">+</span>
         </div>
-        <div class="faq-item" style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s;">
-          <div class="faq-question" style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text);">Quels services proposez-vous exactement ?</h3>
-            <span class="faq-icon" style="font-size: 2rem; color: var(--accent); transition: transform 0.3s;">+</span>
-          </div>
-          <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s; padding: 0 2rem;">
-            <div style="padding-bottom: 2rem; color: var(--text-secondary); line-height: 1.8;">
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Réponse :</strong> Nous proposons trois univers complémentaires :</p>
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Coiffure :</strong> coupes, colorations, soins capillaires</p>
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Tatouage :</strong> Projets personnalisés et tatouages réalisés dans le respect des normes d'hygiène.</p>
-              <p><strong style="color: var(--accent);">Spa :</strong> soins relaxants, massages</p>
-            </div>
-          </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Nous proposons trois univers complémentaires :</p>
+          <p><strong>Coiffure :</strong> coupes, colorations, soins capillaires</p>
+          <p><strong>Tatouage :</strong> Projets personnalisés et tatouages réalisés dans le respect des normes d'hygiène.</p>
+          <p><strong>Spa :</strong> soins relaxants, massages</p>
         </div>
-        <div class="faq-item" style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: all 0.3s;">
-          <div class="faq-question" style="padding: 2rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--text);">Comment faire pour nous contacter en cas de besoin ?</h3>
-            <span class="faq-icon" style="font-size: 2rem; color: var(--accent); transition: transform 0.3s;">+</span>
-          </div>
-          <div class="faq-answer" style="max-height: 0; overflow: hidden; transition: max-height 0.3s; padding: 0 2rem;">
-            <div style="padding-bottom: 2rem; color: var(--text-secondary); line-height: 1.8;">
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Réponse :</strong> Tu peux nous contacter de plusieurs façons :</p>
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Par notre central :</strong> Appelle nous directement pour toute demande.</p>
-              <p style="margin-bottom: 1rem;"><strong style="color: var(--accent);">Via nos réseaux sociaux :</strong> Nous sommes disponibles sur Instapics, birdy pour répondre à toutes tes questions.</p>
-              <p>Nous sommes là pour toi, n'hésite pas à nous écrire !</p>
-            </div>
-          </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Comment faire pour nous contacter en cas de besoin ?</h3>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Tu peux nous contacter de plusieurs façons :</p>
+          <p><strong>Par notre central :</strong> Appelle nous directement pour toute demande.</p>
+          <p><strong>Via nos réseaux sociaux :</strong> Nous sommes disponibles sur Instapics, birdy pour répondre à toutes tes questions.</p>
+          <p>Nous sommes là pour toi, n'hésite pas à nous écrire !</p>
         </div>
       </div>
     </div>
-    <style>
-      .faq-item.active .faq-answer {
-        max-height: 1000px !important;
-      }
-      .faq-item.active .faq-icon {
-        transform: rotate(45deg);
-      }
-    </style>
   </section>
 
   <!-- Passage de Relais Section -->
-  <section class="heritage-section" style="padding: 6rem 2rem; background: var(--bg-secondary);">
-    <div style="max-width: 1200px; margin: 0 auto;">
-      <div style="text-align: center;">
-        <div style="margin-bottom: 3rem; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
-          <img src="img/Capture_decran_2025-11-25_223738.png" alt="Passage de Relais - Équipe Vespucci" style="width: 100%; height: auto; display: block;">
+  <section class="heritage-section">
+    <div class="heritage-container">
+      <div class="heritage-content">
+        <div class="heritage-image-wrapper">
+          <img src="img/Capture_decran_2025-11-25_223738.png" alt="Passage de Relais - Équipe Vespucci" class="heritage-image">
         </div>
-        <h2 style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; margin-bottom: 2rem; color: var(--accent);">Passage de relais et Héritage à l'Esthétique Vespucci</h2>
-        <div style="max-width: 800px; margin: 0 auto; color: var(--text-secondary); line-height: 1.8; font-size: 1.1rem;">
-          <p style="margin-bottom: 1.5rem;">C'est avec joie et fierté que Soren Wanks et Julio Alvarez annoncent la reprise de l'Esthétique Vespucci le 19.11.2025 !</p>
-          <p style="margin-bottom: 1.5rem;">Ce n'est pas seulement un passage de relais professionnel, mais une histoire d'amitié et de respect. Nous remercions chaleureusement Romy Miller pour tout ce qu'elle a créé, sa passion, son exigence et la bienveillance qu'elle a toujours partagée. ❤️</p>
-          <p style="margin-bottom: 1.5rem;">Nous avons à cœur de préserver son esprit et son savoir-faire tout en y apportant notre touche personnelle.</p>
-          <p style="color: var(--accent); font-weight: 600;">En mémoire de Gonzalo Delgado, dont la passion et l'héritage continueront de nous inspirer dans chaque projet. Repose en paix ! 🕊️</p>
+        <h2 class="heritage-title">Passage de relais et Héritage à l'Esthétique Vespucci</h2>
+        <div class="heritage-text">
+          <p>C'est avec joie et fierté que Soren Wanks et Julio Alvarez annoncent la reprise de l'Esthétique Vespucci le 19.11.2025 !</p>
+          <p>Ce n'est pas seulement un passage de relais professionnel, mais une histoire d'amitié et de respect. Nous remercions chaleureusement Romy Miller pour tout ce qu'elle a créé, sa passion, son exigence et la bienveillance qu'elle a toujours partagée. ❤️</p>
+          <p>Nous avons à cœur de préserver son esprit et son savoir-faire tout en y apportant notre touche personnelle.</p>
+          <p class="heritage-memory">En mémoire de Gonzalo Delgado, dont la passion et l'héritage continueront de nous inspirer dans chaque projet. Repose en paix ! 🕊️</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="main-footer" style="padding: 4rem 2rem 2rem; border-top: 1px solid var(--border); background: var(--bg);">
-    <div style="max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
-      <div>
-        <a href="accueil.html" style="display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--text); margin-bottom: 1.5rem;">
-          <img src="img/V.png" alt="Logo Vespucci" style="width: 50px; height: 50px; object-fit: contain;">
-          <div style="display: flex; flex-direction: column;">
-            <span style="font-size: 1.2rem; font-weight: 700; letter-spacing: 2px;">VESPUCCI</span>
-            <span style="font-size: 0.7rem; opacity: 0.7; letter-spacing: 1px;">ESTHÉTIQUE</span>
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="accueil.html" class="footer-logo">
+          <img src="img/V.png" alt="Logo Vespucci" class="footer-logo-image">
+          <div class="footer-logo-text-wrapper">
+            <span class="footer-logo-text">VESPUCCI</span>
+            <span class="footer-logo-subtitle">ESTHÉTIQUE</span>
           </div>
         </a>
-        <p style="color: var(--text-secondary);">L'Esthétique Vespucci © 2025</p>
+        <p>L'Esthétique Vespucci © 2025</p>
       </div>
-      <div style="display: flex; gap: 2rem; justify-content: flex-end; flex-wrap: wrap;">
-        <a href="accueil.html" style="color: var(--text-secondary); text-decoration: none; transition: color 0.3s;">Accueil</a>
-        <a href="femmes.html" style="color: var(--text-secondary); text-decoration: none; transition: color 0.3s;">Femmes</a>
-        <a href="tarifs.html" style="color: var(--text-secondary); text-decoration: none; transition: color 0.3s;">Tarifs</a>
-        <a href="hommes.html" style="color: var(--text-secondary); text-decoration: none; transition: color 0.3s;">Hommes</a>
-        <a href="partenaires.html" style="color: var(--text-secondary); text-decoration: none; transition: color 0.3s;">Partenaires</a>
+      <div class="footer-links">
+        <a href="accueil.html">Accueil</a>
+        <a href="femmes.html">Femmes</a>
+        <a href="tarifs.html">Tarifs</a>
+        <a href="hommes.html">Hommes</a>
+        <a href="partenaires.html">Partenaires</a>
       </div>
     </div>
   </footer>
