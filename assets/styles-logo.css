@@ -8,24 +8,26 @@
 }
 
 :root {
-  --primary: #20B2AA;
-  --primary-light: #4ECDC4;
-  --primary-dark: #1A9B94;
-  --accent: #2E8B87;
-  --accent-light: #6ED3D0;
-  --accent-glow: #7FFFD4;
+  --primary: #e81c5a;
+  --primary-light: #ff2d6e;
+  --primary-dark: #c9154a;
+  --accent: #e81c5a;
+  --accent-hover: #ff2d6e;
+  --accent-light: #ff5a8a;
+  --accent-glow: rgba(232, 28, 90, 0.3);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.75);
+  --text-secondary: rgba(255, 255, 255, 0.7);
   --text-muted: rgba(255, 255, 255, 0.5);
-  --bg-dark: #0a0a0f;
+  --bg-dark: #0e0e0e;
+  --bg-secondary: #141414;
   --bg-darker: #050508;
   --surface: rgba(255, 255, 255, 0.04);
   --surface-hover: rgba(255, 255, 255, 0.08);
-  --border: rgba(255, 255, 255, 0.12);
+  --border: rgba(255, 255, 255, 0.1);
   --shadow: rgba(0, 0, 0, 0.4);
-  --shadow-glow: rgba(32, 178, 170, 0.5);
-  --gradient-1: linear-gradient(135deg, #20B2AA 0%, #4ECDC4 50%, #6ED3D0 100%);
-  --gradient-2: linear-gradient(135deg, #2E8B87 0%, #20B2AA 50%, #4ECDC4 100%);
+  --shadow-glow: rgba(232, 28, 90, 0.5);
+  --gradient-1: linear-gradient(135deg, #e81c5a 0%, #ff2d6e 50%, #ff5a8a 100%);
+  --gradient-2: linear-gradient(135deg, #c9154a 0%, #e81c5a 50%, #ff2d6e 100%);
 }
 
 html {
@@ -58,6 +60,50 @@ body {
   line-height: 1.6;
   position: relative;
   cursor: default;
+}
+
+/* Override styles for new design */
+.nav-item:hover {
+  color: var(--accent) !important;
+}
+
+.nav-item.active {
+  color: var(--accent) !important;
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-hover) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(232, 28, 90, 0.4);
+}
+
+.service-card:hover {
+  border-color: var(--accent) !important;
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(232, 28, 90, 0.2);
+}
+
+.service-card:hover a {
+  gap: 1rem !important;
+}
+
+.address-item:hover {
+  border-color: var(--accent) !important;
+  transform: translateX(10px);
+}
+
+a:hover {
+  color: var(--accent) !important;
 }
 
 /* ============================================
