@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion Admin - L'Esthétique Vespucci</title>
+  <link rel="icon" type="image/png" href="img/V.png">
+  <link rel="stylesheet" href="assets/styles-logo.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-db.js"></script>
+  <script src="assets/url-cleaner.js"></script>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--bg-dark);
+      margin: 0;
+      padding: 2rem;
+    }
+    
+    .login-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .login-header h1 {
+      color: var(--text-primary);
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .login-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+    
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .form-group label {
+      color: var(--text-primary);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    
+    .form-group input {
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.3s ease;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    .login-btn {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      border: none;
+      border-radius: 10px;
+      padding: 1rem;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+    }
+    
+    .login-btn:active {
+      transform: translateY(0);
+    }
+    
+    .error-message {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 1rem;
+      color: #ef4444;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none;
+    }
+    
+    .error-message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <div class="login-header">
+      <h1>Accès Admin</h1>
+      <p>Veuillez entrer le mot de passe pour accéder à la page d'administration</p>
+    </div>
+    
+    <form class="login-form" id="loginForm" onsubmit="return handleLogin(event)">
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" required autofocus>
+      </div>
+      
+      <div class="error-message" id="errorMessage">
+        Mot de passe incorrect. Veuillez réessayer.
+      </div>
+      
+      <button type="button" class="login-btn" id="loginButton">Se connecter</button>
+    </form>
+  </div>
+
+  <script>
+    // Note: db est déclaré dans firebase-db.js
+    let firebaseInitialized = false;
+    
+    // Fonction pour hasher le mot de passe (SHA-256)
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    
+    // Initialiser Firebase
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (initFirebaseDB && typeof initFirebaseDB === 'function') {
+        firebaseInitialized = initFirebaseDB();
+        if (firebaseInitialized && typeof firebaseFirestore !== 'undefined') {
+          // Vérifier si le mot de passe existe dans Firestore, sinon créer le défaut
+          try {
+            const passwordDoc = await firebaseFirestore.collection('admin').doc('password').get();
+            if (!passwordDoc.exists) {
+              // Créer le mot de passe par défaut (admin123)
+              const defaultPassword = 'admin123';
+              const defaultHash = await hashPassword(defaultPassword);
+              await firebaseFirestore.collection('admin').doc('password').set({
+                hash: defaultHash,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            }
+          } catch (error) {
+            console.error('Erreur initialisation mot de passe:', error);
+          }
+        }
+      }
+    });
+    
+    // Vérifier si l'utilisateur est déjà connecté
+    if (sessionStorage.getItem('adminAuthenticated') === 'true') {
+      // Utiliser un chemin absolu depuis la racine
+      const rootPath = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+      window.location.href = rootPath + '/admin.html';
+    }
+    
+    async function handleLogin(event) {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+      
+      const passwordInput = document.getElementById('password');
+      const password = passwordInput.value;
+      const errorMessage = document.getElementById('errorMessage');
+      
+      if (!firebaseInitialized || !firebaseFirestore) {
+        errorMessage.textContent = 'Erreur de connexion. Veuillez réessayer.';
+        errorMessage.classList.add('show');
+        setTimeout(() => {
+          errorMessage.classList.remove('show');
+        }, 3000);
+        return false;
+      }
+      
+      try {
+        // Récupérer le hash du mot de passe depuis Firestore
+        const passwordDoc = await firebaseFirestore.collection('admin').doc('password').get();
+        
+        if (!passwordDoc.exists) {
+          errorMessage.textContent = 'Configuration manquante. Contactez l\'administrateur.';
+          errorMessage.classList.add('show');
+          setTimeout(() => {
+            errorMessage.classList.remove('show');
+          }, 3000);
+          return false;
+        }
+        
+        const storedHash = passwordDoc.data().hash;
+        
+        // Hasher le mot de passe saisi
+        const inputHash = await hashPassword(password);
+        
+        // Comparer les hash
+        if (inputHash === storedHash) {
+          // Stocker l'authentification dans sessionStorage
+          sessionStorage.setItem('adminAuthenticated', 'true');
+          
+          // Rediriger vers admin.html (utiliser replace pour éviter le retour en arrière)
+          const rootPath = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+          window.location.replace(rootPath + '/admin.html');
+          return false;
+        } else {
+          // Afficher l'erreur
+          errorMessage.textContent = 'Mot de passe incorrect. Veuillez réessayer.';
+          errorMessage.classList.add('show');
+          passwordInput.value = '';
+          passwordInput.focus();
+          
+          // Masquer l'erreur après 3 secondes
+          setTimeout(() => {
+            errorMessage.classList.remove('show');
+          }, 3000);
+          return false;
+        }
+      } catch (error) {
+        console.error('Erreur authentification:', error);
+        errorMessage.textContent = 'Erreur de connexion. Veuillez réessayer.';
+        errorMessage.classList.add('show');
+        setTimeout(() => {
+          errorMessage.classList.remove('show');
+        }, 3000);
+        return false;
+      }
+    }
+    
+    // Gérer les événements du formulaire
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('loginForm');
+      const passwordInput = document.getElementById('password');
+      const loginButton = document.getElementById('loginButton');
+      
+      // Empêcher la soumission par défaut du formulaire
+      if (loginForm) {
+        loginForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleLogin(e);
+          return false;
+        }, true); // Utiliser capture phase pour intercepter en premier
+      }
+      
+      // Ajouter l'event listener sur le bouton
+      if (loginButton) {
+        loginButton.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleLogin(e);
+        });
+      }
+      
+      // Permettre la soumission avec Enter
+      if (passwordInput) {
+        passwordInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleLogin(e);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+

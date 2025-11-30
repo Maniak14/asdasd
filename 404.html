@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Redirection - L'Esthétique Vespucci</title>
+  <script>
+    // Récupérer le chemin demandé
+    const path = window.location.pathname;
+    
+    // Liste des pages disponibles
+    const pages = {
+      '/': 'accueil.html',
+      '/index': 'accueil.html',
+      '/accueil': 'accueil.html',
+      '/tarifs': 'tarifs.html',
+      '/femmes': 'femmes.html',
+      '/hommes': 'hommes.html',
+      '/partenaires': 'partenaires.html',
+      '/admin': 'admin.html',
+      '/admin-login': 'admin-login.html'
+    };
+    
+    // Nettoyer le chemin (enlever les slashes de fin)
+    const cleanPath = path.replace(/\/$/, '') || '/';
+    
+    // Trouver la page correspondante
+    const targetPage = pages[cleanPath];
+    
+    if (targetPage) {
+      // Rediriger vers la page correspondante
+      window.location.replace(targetPage);
+    } else {
+      // Si aucune page trouvée, rediriger vers l'accueil
+      window.location.replace('accueil.html');
+    }
+  </script>
+</head>
+<body>
+  <p>Redirection en cours...</p>
+</body>
+</html>
+

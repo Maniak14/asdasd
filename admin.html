@@ -1,0 +1,3189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin - L'Esthétique Vespucci</title>
+  <link rel="icon" type="image/png" href="img/V.png">
+  <link rel="stylesheet" href="assets/styles-logo.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-db.js"></script>
+  <script src="assets/url-cleaner.js"></script>
+  <script>
+    // Vérifier l'authentification avant d'afficher la page
+    if (sessionStorage.getItem('adminAuthenticated') !== 'true') {
+      // Utiliser un chemin absolu depuis la racine
+      const rootPath = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+      window.location.href = rootPath + '/admin-login.html';
+    }
+    
+    // Force scroll to top immediately on page load
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  </script>
+  <style>
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--bg-dark);
+      min-height: 100vh;
+      position: relative;
+    }
+    
+    .admin-container::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(32, 178, 170, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(32, 178, 170, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(32, 178, 170, 0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .admin-container > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .admin-header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 3rem 2rem;
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.1) 0%, 
+        rgba(32, 178, 170, 0.05) 50%,
+        transparent 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 25px;
+      border: 2px solid rgba(32, 178, 170, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                  0 0 100px rgba(32, 178, 170, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .admin-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.1) 0%, transparent 70%);
+      animation: pulse 8s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    .admin-header > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .admin-header h1 {
+      color: var(--text-primary);
+      font-size: 2.8rem;
+      margin-bottom: 1rem;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5),
+                   0 0 30px rgba(32, 178, 170, 0.3);
+      font-weight: 800;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, 
+        var(--text-primary) 0%, 
+        var(--primary-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    /* Accordion/Volet System - Premium Design */
+    .accordion-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .accordion-item {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(32, 178, 170, 0.2);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      position: relative;
+    }
+    
+    .accordion-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, 
+        var(--primary) 0%, 
+        var(--primary-light) 50%, 
+        var(--primary) 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+    
+    .accordion-item:hover {
+      border-color: rgba(32, 178, 170, 0.4);
+      box-shadow: 0 12px 48px rgba(32, 178, 170, 0.25),
+                  0 0 0 1px rgba(32, 178, 170, 0.1) inset,
+                  0 0 60px rgba(32, 178, 170, 0.1);
+      transform: translateY(-2px);
+    }
+    
+    .accordion-item:hover::before {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    
+    .accordion-item.active {
+      border-color: var(--primary);
+      box-shadow: 0 16px 64px rgba(32, 178, 170, 0.35),
+                  0 0 0 1px rgba(32, 178, 170, 0.2) inset,
+                  0 0 80px rgba(32, 178, 170, 0.15);
+      background: rgba(32, 178, 170, 0.05);
+    }
+    
+    .accordion-item.active::before {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    
+    .accordion-header {
+      padding: 2rem 2.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.08) 0%, 
+        rgba(32, 178, 170, 0.02) 50%,
+        transparent 100%);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .accordion-header::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.3) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+    
+    .accordion-header:hover::after {
+      width: 300px;
+      height: 300px;
+    }
+    
+    .accordion-header:hover {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.15) 0%, 
+        rgba(32, 178, 170, 0.05) 50%,
+        transparent 100%);
+      transform: scale(1.01);
+    }
+    
+    .accordion-header.active {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.2) 0%, 
+        rgba(32, 178, 170, 0.08) 50%,
+        rgba(32, 178, 170, 0.02) 100%);
+      border-bottom: 2px solid var(--primary);
+      box-shadow: 0 4px 20px rgba(32, 178, 170, 0.2) inset;
+    }
+    
+    .accordion-title {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      color: var(--text-primary);
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.5px;
+    }
+    
+    .accordion-title .accordion-icon:first-child {
+      font-size: 2rem;
+      filter: drop-shadow(0 0 10px rgba(32, 178, 170, 0.5));
+      transition: all 0.3s ease;
+    }
+    
+    .accordion-item:hover .accordion-title .accordion-icon:first-child {
+      transform: scale(1.1) rotate(5deg);
+      filter: drop-shadow(0 0 15px rgba(32, 178, 170, 0.7));
+    }
+    
+    .accordion-icon:last-child {
+      font-size: 1.2rem;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      color: var(--primary);
+      position: relative;
+      z-index: 1;
+      filter: drop-shadow(0 0 8px rgba(32, 178, 170, 0.6));
+    }
+    
+    .accordion-item.active .accordion-icon:last-child {
+      transform: rotate(180deg) scale(1.2);
+    }
+    
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+                  padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 0 2.5rem;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .accordion-item.active .accordion-content {
+      max-height: 80vh;
+      max-height: min(80vh, 10000px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 2.5rem;
+      /* Masquer la scrollbar tout en gardant le scroll fonctionnel */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE et Edge */
+    }
+    
+    /* Masquer la scrollbar pour WebKit (Chrome, Safari, Edge) */
+    .accordion-item.active .accordion-content::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+    
+    .accordion-content-inner {
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.4s ease 0.2s, 
+                  transform 0.4s ease 0.2s;
+    }
+    
+    .accordion-item.active .accordion-content-inner {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .admin-section {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      margin-bottom: 0;
+    }
+    
+    .admin-section h2 {
+      display: none;
+    }
+    
+    /* Loading indicator */
+    .loading-indicator {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-style: italic;
+    }
+    
+    /* Smooth scroll for accordion opening */
+    .accordion-item.active {
+      animation: slideDown 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Premium button styles */
+    .btn-small {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.8) 0%, 
+        rgba(32, 178, 170, 0.6) 100%);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(32, 178, 170, 0.4);
+      box-shadow: 0 4px 20px rgba(32, 178, 170, 0.3),
+                  0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .btn-small:hover {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 1) 0%, 
+        rgba(32, 178, 170, 0.8) 100%);
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 30px rgba(32, 178, 170, 0.5),
+                  0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+                  0 0 40px rgba(32, 178, 170, 0.3);
+    }
+    
+    /* Image grid premium styling */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      position: relative;
+    }
+    
+    .image-grid::before {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.05) 0%, 
+        transparent 50%,
+        rgba(32, 178, 170, 0.05) 100%);
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+    }
+    
+    .accordion-item.active .image-grid::before {
+      opacity: 1;
+    }
+    
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .image-item {
+      position: relative;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(32, 178, 170, 0.2);
+      border-radius: 20px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      overflow: hidden;
+    }
+    
+    .image-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.15) 0%, 
+        rgba(32, 178, 170, 0.05) 50%,
+        transparent 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      z-index: 0;
+    }
+    
+    .image-item::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.2) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      z-index: 0;
+    }
+    
+    .image-item:hover {
+      border-color: var(--primary);
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(32, 178, 170, 0.4),
+                  0 0 0 1px rgba(32, 178, 170, 0.3) inset,
+                  0 0 80px rgba(32, 178, 170, 0.2);
+    }
+    
+    .image-item:hover::before {
+      opacity: 1;
+    }
+    
+    .image-item:hover::after {
+      opacity: 1;
+    }
+    
+    .image-item.drag-over {
+      border-color: var(--accent);
+      background: rgba(32, 178, 170, 0.1);
+    }
+    
+    .image-item img {
+      max-width: 100%;
+      max-height: 200px;
+      width: 100%;
+      height: 200px;
+      border-radius: 15px;
+      object-fit: cover;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+    
+    .image-item:hover img {
+      transform: scale(1.05);
+    }
+    
+    /* Image preview container */
+    .image-preview-container {
+      width: 100%;
+      margin: 1rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .image-preview-wrapper {
+      width: 100%;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto;
+      border: 3px solid var(--primary);
+      background: var(--bg-dark);
+      position: relative;
+      box-shadow: 0 8px 30px rgba(32, 178, 170, 0.3);
+    }
+    
+    .image-preview-wrapper.rectangular {
+      border-radius: 15px;
+    }
+    
+    .image-preview-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: object-position 0.2s ease;
+    }
+    
+    .image-position-controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+    
+    .position-btn {
+      background: rgba(32, 178, 170, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(32, 178, 170, 0.3);
+      color: var(--text-primary);
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+                  0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .position-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.4) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.4s ease, height 0.4s ease;
+    }
+    
+    .position-btn:hover::before {
+      width: 100px;
+      height: 100px;
+    }
+    
+    .position-btn:hover {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.9) 0%, 
+        rgba(32, 178, 170, 0.7) 100%);
+      color: white;
+      border-color: var(--primary);
+      transform: scale(1.15) rotate(5deg);
+      box-shadow: 0 8px 25px rgba(32, 178, 170, 0.5),
+                  0 0 0 2px rgba(255, 255, 255, 0.2) inset,
+                  0 0 30px rgba(32, 178, 170, 0.4);
+    }
+    
+    .position-btn:active {
+      transform: scale(1.05) rotate(0deg);
+    }
+    
+    .position-display {
+      min-width: 80px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .image-item .image-label {
+      color: var(--text-primary);
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .image-item .remove-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .image-item:hover .remove-btn {
+      opacity: 1;
+    }
+    
+    .drop-zone {
+      border: 2px dashed var(--primary);
+      border-radius: 15px;
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+      background: rgba(32, 178, 170, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .drop-zone.drag-over {
+      background: rgba(32, 178, 170, 0.2);
+      border-color: var(--accent);
+    }
+    
+    .save-btn {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.9) 0%, 
+        rgba(32, 178, 170, 0.7) 50%,
+        rgba(32, 178, 170, 0.9) 100%);
+      backdrop-filter: blur(20px);
+      color: white;
+      border: 2px solid rgba(32, 178, 170, 0.5);
+      padding: 1.5rem 2rem;
+      border-radius: 20px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-top: 3rem;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(32, 178, 170, 0.4),
+                  0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                  0 0 60px rgba(32, 178, 170, 0.2);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .save-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+      transition: left 0.6s ease;
+    }
+    
+    .save-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+    
+    .save-btn:hover::before {
+      left: 100%;
+    }
+    
+    .save-btn:hover::after {
+      width: 500px;
+      height: 500px;
+    }
+    
+    .save-btn:hover {
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 1) 0%, 
+        rgba(32, 178, 170, 0.9) 50%,
+        rgba(32, 178, 170, 1) 100%);
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 60px rgba(32, 178, 170, 0.6),
+                  0 0 0 2px rgba(255, 255, 255, 0.2) inset,
+                  0 0 100px rgba(32, 178, 170, 0.4);
+      border-color: rgba(32, 178, 170, 0.8);
+    }
+    
+    .save-btn:active {
+      transform: translateY(-2px) scale(1);
+    }
+    
+    .input-url {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid rgba(32, 178, 170, 0.2);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      color: var(--text-primary);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) inset;
+    }
+    
+    .input-url::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .input-url:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: rgba(32, 178, 170, 0.1);
+      box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.2),
+                  0 8px 25px rgba(32, 178, 170, 0.2) inset,
+                  0 0 40px rgba(32, 178, 170, 0.1);
+      transform: scale(1.01);
+    }
+    
+    .url-input-group {
+      margin-bottom: 1rem;
+    }
+    
+    .url-input-group label {
+      color: var(--text-primary);
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    
+    .btn-small {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 15px rgba(32, 178, 170, 0.3);
+    }
+    
+    .btn-small:hover {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(32, 178, 170, 0.4);
+    }
+    
+    .success-message {
+      background: rgba(0, 255, 0, 0.2);
+      color: #00ff00;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+      text-align: center;
+      display: none;
+    }
+    
+    .success-message.show {
+      display: block;
+    }
+    
+    .add-image-btn {
+      background: rgba(32, 178, 170, 0.05);
+      backdrop-filter: blur(10px);
+      border: 2px dashed rgba(32, 178, 170, 0.4);
+      border-radius: 20px;
+      padding: 2.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 3.5rem;
+      font-weight: 300;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                  0 0 0 1px rgba(32, 178, 170, 0.1) inset;
+      margin-top: 2rem;
+    }
+    
+    .add-image-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, 
+        rgba(32, 178, 170, 0.2) 0%, 
+        rgba(32, 178, 170, 0.05) 50%,
+        transparent 100%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    
+    .add-image-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.3) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s ease, height 0.6s ease;
+    }
+    
+    .add-image-btn:hover {
+      background: rgba(32, 178, 170, 0.15);
+      border-color: var(--primary);
+      border-style: solid;
+      transform: translateY(-8px) scale(1.03);
+      box-shadow: 0 20px 60px rgba(32, 178, 170, 0.4),
+                  0 0 0 2px rgba(32, 178, 170, 0.3) inset,
+                  0 0 100px rgba(32, 178, 170, 0.2);
+    }
+    
+    .add-image-btn:hover::before {
+      opacity: 1;
+    }
+    
+    .add-image-btn:hover::after {
+      width: 400px;
+      height: 400px;
+    }
+    
+    .add-image-btn:hover > div {
+      transform: scale(1.3) rotate(90deg);
+      filter: drop-shadow(0 0 20px rgba(32, 178, 170, 0.8));
+    }
+    
+    .add-image-btn > div {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s ease;
+    }
+    
+    .add-image-btn:hover > div {
+      transform: scale(1.2);
+    }
+    
+    .add-image-btn span {
+      font-size: 1.1rem;
+      margin-top: 0.75rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .delete-image-btn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+    }
+    
+    .delete-image-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 68, 68, 0.6);
+    }
+    
+    .image-item:hover .delete-image-btn {
+      opacity: 1;
+    }
+    
+    .image-item .remove-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: linear-gradient(135deg, #ffaa00 0%, #ff8800 100%);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 10;
+      box-shadow: 0 4px 15px rgba(255, 170, 0, 0.4);
+    }
+    
+    .image-item .remove-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(255, 170, 0, 0.6);
+    }
+    
+    .image-item:hover .remove-btn {
+      opacity: 1;
+    }
+    
+    /* Team member fields styling */
+    .image-item .team-fields {
+      margin-top: 1rem;
+      display: grid;
+      gap: 0.75rem;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .image-item .team-fields .input-url {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all 0.3s ease;
+    }
+    
+    .image-item .team-fields .input-url:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.15);
+    }
+    
+    .image-item .team-fields .input-url::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.7;
+    }
+    
+    /* Admin section improvements */
+    .admin-section {
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .admin-header {
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Mobile responsive */
+    @media (max-width: 768px) {
+      .admin-container {
+        padding: 1rem;
+        padding-top: 5rem;
+      }
+      
+      .admin-header {
+        padding: 1.5rem 1rem;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+      }
+      
+      .admin-header h1 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        letter-spacing: 0.5px;
+      }
+      
+      .admin-header p {
+        font-size: 0.9rem;
+      }
+      
+      .admin-header > div > div:last-child {
+        flex-direction: column;
+        width: 100%;
+        align-items: stretch;
+      }
+      
+      .admin-header > div > div:last-child button {
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 0.6rem 1rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .admin-container {
+        padding: 0.8rem;
+        padding-top: 4rem;
+      }
+      
+      .admin-header {
+        padding: 1.2rem 0.8rem;
+        margin-bottom: 1.5rem;
+      }
+      
+      .admin-header h1 {
+        font-size: 1.2rem;
+      }
+      
+      .admin-header > div {
+        gap: 1rem;
+      }
+    }
+    
+    /* Mobile Navigation Styles */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(10, 10, 15, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .navbar.active {
+      transform: translateX(0);
+    }
+
+    .mobile-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2rem;
+    }
+
+    .nav-links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      padding: 0.75rem 0;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--primary-light);
+    }
+
+    .mobile-close-btn {
+      display: none;
+    }
+
+    .mobile-close-btn span {
+      position: absolute;
+      width: 25px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .mobile-close-btn span:first-child {
+      transform: rotate(45deg);
+    }
+
+    .mobile-close-btn span:last-child {
+      transform: rotate(-45deg);
+    }
+
+    .burger {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      z-index: 10000;
+      background: none;
+      border-radius: 0;
+      padding: 8px;
+      border: none;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .burger span {
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .burger.active span:first-child {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .burger.active span:last-child {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    @media (max-width: 768px) {
+      .burger {
+        display: flex;
+      }
+
+      .nav-toggle {
+        display: none;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="noise-overlay"></div>
+  </div>
+
+  <!-- Geometric Shapes -->
+  <div class="geometric-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-container">
+      <a href="accueil.html" class="logo">
+        <img src="img/V.png" alt="Logo Vespucci" class="logo-image">
+        <div class="logo-text-wrapper">
+          <span class="logo-text">VESPUCCI</span>
+          <span class="logo-subtitle">ESTHÉTIQUE</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="accueil.html" class="nav-item">Accueil</a>
+        <a href="tarifs.html" class="nav-item">Tarifs</a>
+        <a href="femmes.html" class="nav-item">Femmes</a>
+        <a href="hommes.html" class="nav-item">Hommes</a>
+        <a href="partenaires.html" class="nav-item">Partenaires</a>
+        <a href="admin.html" class="nav-item active">Admin</a>
+      </div>
+      <button class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  <nav class="navbar">
+    <div class="mobile-title"></div>
+    <div class="nav-links-container">
+      <a href="accueil.html" class="nav-link">Accueil</a>
+      <a href="tarifs.html" class="nav-link">Tarifs</a>
+      <a href="femmes.html" class="nav-link">Femmes</a>
+      <a href="hommes.html" class="nav-link">Hommes</a>
+      <a href="partenaires.html" class="nav-link">Partenaires</a>
+      <a href="admin.html" class="nav-link active">Admin</a>
+    </div>
+    <div class="mobile-close-btn">
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <div class="burger" id="burger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <div class="admin-container" style="padding-top: 8rem;">
+    <div class="admin-header">
+      <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 1.5rem;">
+        <div style="text-align: center;">
+          <h1>🔧 Administration - L'Esthétique Vespucci</h1>
+          <p style="color: var(--text-secondary);">Gérez les images de votre site</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: flex-end; width: 100%;">
+          <button onclick="exportAllCatalogData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; white-space: nowrap;" onmouseover="this.style.background='rgba(34, 197, 94, 0.2)'" onmouseout="this.style.background='rgba(34, 197, 94, 0.1)'" title="Télécharger catalog-images.json avec toutes les données">📥 Exporter tout (JSON)</button>
+          <button onclick="logout()" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; transition: all 0.3s ease; white-space: nowrap;" onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Export Global Section -->
+    <div id="globalExportResult" style="display: none; background: var(--bg-dark); border: 2px solid var(--primary); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h3 style="color: var(--text-primary); font-size: 1.2rem; margin: 0;">📋 Fichier catalog-images.json (téléchargé automatiquement)</h3>
+        <button onclick="copyGlobalExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier le JSON</button>
+      </div>
+      <textarea id="globalExportData" readonly style="width: 100%; min-height: 300px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem; margin-bottom: 0;">💡 Le fichier a été téléchargé automatiquement. Vous pouvez aussi copier le JSON ci-dessus pour le coller dans catalog-images.json</p>
+    </div>
+
+    <!-- Accordion Container -->
+    <div class="accordion-container">
+      
+      <!-- Team Images Section -->
+      <div class="accordion-item" data-section="team">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">👥</span>
+            Photos de l'Équipe
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <div class="image-grid" id="teamImages">
+              <!-- Team images will be loaded here -->
+            </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div class="add-image-btn" onclick="addNewTeamMember()" title="Ajouter un nouvel employé">
+          <div>+</div>
+          <span>Ajouter un employé</span>
+        </div>
+        <button class="btn-small" onclick="exportTeamData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;">📥 Exporter les données</button>
+      </div>
+            <div id="teamExportResult" style="display: none; margin-top: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; margin: 0;">📋 Données exportées (copiez ceci) :</h3>
+                <button onclick="copyTeamExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier</button>
+              </div>
+              <textarea id="teamExportData" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gallery Images Section -->
+      <div class="accordion-item" data-section="gallery">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">🖼️</span>
+            Galerie (Carousel)
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <div class="image-grid" id="galleryImages">
+              <!-- Gallery images will be loaded here -->
+            </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div class="add-image-btn" onclick="addNewGalleryImage()" title="Ajouter une nouvelle image">
+          <div>+</div>
+          <span>Ajouter une image</span>
+        </div>
+        <button class="btn-small" onclick="exportGalleryData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;">📥 Exporter les données</button>
+      </div>
+            <div id="galleryExportResult" style="display: none; margin-top: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; margin: 0;">📋 Données exportées (copiez ceci) :</h3>
+                <button onclick="copyGalleryExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier</button>
+              </div>
+              <textarea id="galleryExportData" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Femmes Catalog Section -->
+      <div class="accordion-item" data-section="femmes">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">👩</span>
+            Catalogue Femmes
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+      
+      <!-- Ajout en masse d'URLs -->
+      <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="color: var(--text-primary); font-size: 1.2rem; margin-bottom: 1rem;">📋 Ajout en masse d'URLs</h3>
+        <div style="background: rgba(32, 178, 170, 0.1); border: 1px solid var(--primary); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+          <p style="color: var(--text-primary); font-size: 0.9rem; margin: 0 0 0.5rem 0; font-weight: 600;">📖 Comment obtenir les URLs depuis Goopics :</p>
+          <ol style="color: var(--text-secondary); font-size: 0.85rem; margin: 0; padding-left: 1.5rem; line-height: 1.6;">
+            <li>Allez sur <strong>goopics.net</strong> et uploadez vos images</li>
+            <li>Pour chaque image, cliquez sur <strong>"Lien direct"</strong> (ou "Direct link")</li>
+            <li>Copiez l'URL qui commence par <code>https://i.goopics.net/...</code></li>
+            <li>Collez toutes les URLs ici (une par ligne) dans l'ordre souhaité</li>
+          </ol>
+        </div>
+        <textarea id="femmesUrlsBulk" placeholder="https://i.goopics.net/abc123.png&#10;https://i.goopics.net/def456.png&#10;https://i.goopics.net/ghi789.png" style="width: 100%; min-height: 150px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button class="btn-small" onclick="cleanFemmesUrls()" style="flex: 1;">🧹 Nettoyer les URLs</button>
+          <button class="btn-small" onclick="addBulkFemmesUrls()" style="flex: 2;">➕ Ajouter toutes les URLs</button>
+        </div>
+        <div id="femmesBulkResult" style="margin-top: 1rem; display: none;"></div>
+      </div>
+      
+      <div class="image-grid" id="femmesCatalog">
+        <!-- Femmes images will be loaded here -->
+      </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div class="add-image-btn" onclick="addNewFemmesImage()" title="Ajouter une nouvelle image">
+          <div>+</div>
+          <span>Ajouter une image</span>
+        </div>
+        <button class="btn-small" onclick="exportFemmesData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;">📥 Exporter les données</button>
+      </div>
+            <div id="femmesExportResult" style="display: none; margin-top: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; margin: 0;">📋 Données exportées (copiez ceci) :</h3>
+                <button onclick="copyFemmesExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier</button>
+              </div>
+              <textarea id="femmesExportData" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partenaires Section -->
+      <div class="accordion-item" data-section="partenaires">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">🤝</span>
+            Partenaires
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+      <div class="image-grid" id="partenairesList">
+        <!-- Partenaires will be loaded here -->
+      </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div class="add-image-btn" onclick="addNewPartenaire()" title="Ajouter un nouveau partenaire">
+          <div>+</div>
+          <span>Ajouter un partenaire</span>
+        </div>
+        <button class="btn-small" onclick="exportPartenairesData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;">📥 Exporter les données</button>
+      </div>
+            <div id="partenairesExportResult" style="display: none; margin-top: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; margin: 0;">📋 Données exportées (copiez ceci) :</h3>
+                <button onclick="copyPartenairesExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier</button>
+              </div>
+              <textarea id="partenairesExportData" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hommes Catalog Section -->
+      <div class="accordion-item" data-section="hommes">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">👨</span>
+            Catalogue Hommes
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+      
+      <!-- Ajout en masse d'URLs -->
+      <div style="background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="color: var(--text-primary); font-size: 1.2rem; margin-bottom: 1rem;">📋 Ajout en masse d'URLs</h3>
+        <div style="background: rgba(32, 178, 170, 0.1); border: 1px solid var(--primary); border-radius: 10px; padding: 1rem; margin-bottom: 1rem;">
+          <p style="color: var(--text-primary); font-size: 0.9rem; margin: 0 0 0.5rem 0; font-weight: 600;">📖 Comment obtenir les URLs depuis Goopics :</p>
+          <ol style="color: var(--text-secondary); font-size: 0.85rem; margin: 0; padding-left: 1.5rem; line-height: 1.6;">
+            <li>Allez sur <strong>goopics.net</strong> et uploadez vos images</li>
+            <li>Pour chaque image, cliquez sur <strong>"Lien direct"</strong> (ou "Direct link")</li>
+            <li>Copiez l'URL qui commence par <code>https://i.goopics.net/...</code></li>
+            <li>Collez toutes les URLs ici (une par ligne) dans l'ordre souhaité</li>
+          </ol>
+        </div>
+        <textarea id="hommesUrlsBulk" placeholder="https://i.goopics.net/abc123.png&#10;https://i.goopics.net/def456.png&#10;https://i.goopics.net/ghi789.png" style="width: 100%; min-height: 150px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem; resize: vertical;"></textarea>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <button class="btn-small" onclick="cleanHommesUrls()" style="flex: 1;">🧹 Nettoyer les URLs</button>
+          <button class="btn-small" onclick="addBulkHommesUrls()" style="flex: 2;">➕ Ajouter toutes les URLs</button>
+        </div>
+        <div id="hommesBulkResult" style="margin-top: 1rem; display: none;"></div>
+      </div>
+      
+      <div class="image-grid" id="hommesCatalog">
+        <!-- Hommes images will be loaded here -->
+      </div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+        <div class="add-image-btn" onclick="addNewHommesImage()" title="Ajouter une nouvelle image">
+          <div>+</div>
+          <span>Ajouter une image</span>
+        </div>
+        <button class="btn-small" onclick="exportHommesData()" style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;">📥 Exporter les données</button>
+      </div>
+            <div id="hommesExportResult" style="display: none; margin-top: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 15px; padding: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--text-primary); font-size: 1.1rem; margin: 0;">📋 Données exportées (copiez ceci) :</h3>
+                <button onclick="copyHommesExport()" class="btn-small" style="background: var(--primary); color: white;">📋 Copier</button>
+              </div>
+              <textarea id="hommesExportData" readonly style="width: 100%; min-height: 200px; padding: 1rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text-primary); font-family: monospace; font-size: 0.85rem; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Images Section -->
+      <div class="accordion-item" data-section="hero">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">⭐</span>
+            Images Hero
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <div class="image-grid" id="heroImages">
+              <!-- Hero images will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map Image Section -->
+      <div class="accordion-item" data-section="map">
+        <div class="accordion-header" onclick="toggleAccordion(this)">
+          <h3 class="accordion-title">
+            <span class="accordion-icon">🗺️</span>
+            Carte de Localisation
+          </h3>
+          <span class="accordion-icon">▼</span>
+        </div>
+        <div class="accordion-content">
+          <div class="accordion-content-inner">
+            <div class="image-grid" id="mapImage">
+              <!-- Map image will be loaded here -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+    <!-- End Accordion Container -->
+
+    <button class="save-btn" onclick="saveAllImages()">💾 Sauvegarder toutes les modifications</button>
+    <div class="success-message" id="successMessage">✅ Modifications sauvegardées avec succès !</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="accueil.html" class="footer-logo">
+          <img src="img/V.png" alt="Logo Vespucci" class="footer-logo-image">
+          <div class="footer-logo-text-wrapper">
+            <span class="footer-logo-text">VESPUCCI</span>
+            <span class="footer-logo-subtitle">ESTHÉTIQUE</span>
+          </div>
+        </a>
+        <p>L'Esthétique Vespucci © 2025</p>
+      </div>
+      <div class="footer-links">
+        <a href="accueil.html">Accueil</a>
+        <a href="femmes.html">Femmes</a>
+        <a href="tarifs.html">Tarifs</a>
+        <a href="hommes.html">Hommes</a>
+        <a href="partenaires.html">Partenaires</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Image configuration
+    const imageConfig = {
+      team: [
+        { id: 'julio', name: 'Julio Alvarez', default: 'https://i.goopics.net/pjtgz1.png' },
+        { id: 'soren', name: 'Soren Wanks', default: 'https://i.goopics.net/8y3mgo.png' },
+        { id: 'sun', name: 'Sun Price', default: 'https://i.goopics.net/t7adhn.png' },
+        { id: 'inaya', name: 'Inaya Kinslow', default: 'https://i.goopics.net/zyg7y5.png' },
+        { id: 'andres', name: 'Andres Henarnandez', default: 'https://i.goopics.net/xloucg.png' },
+        { id: 'yoruhime', name: 'Yoruhime Yoshikage', default: 'https://i.goopics.net/15utm9.png' }
+      ],
+      gallery: [
+        { id: 'gallery1', name: 'Galerie 1', default: 'img/carousel/1.png' },
+        { id: 'gallery2', name: 'Galerie 2', default: 'img/carousel/2.png' },
+        { id: 'gallery3', name: 'Galerie 3', default: 'img/carousel/3.png' },
+        { id: 'gallery4', name: 'Galerie 4', default: 'img/carousel/4.png' },
+        { id: 'gallery5', name: 'Galerie 5', default: 'img/carousel/5.png' },
+        { id: 'gallery6', name: 'Galerie 6', default: 'img/carousel/6.png' }
+      ],
+      hero: [
+        { id: 'hero1', name: 'Image Hero 1 (Patron)', default: 'img/2.png' },
+        { id: 'hero2', name: 'Image Hero 2 (Co-Patron)', default: 'img/1.png' }
+      ],
+      map: { id: 'map', name: 'Carte', default: 'img/map.png' }
+    };
+
+    // Initialize Firebase on page load
+    // Note: firebaseInitialized is declared in firebase-db.js
+    // Create local reference to avoid errors
+    let firebaseInitialized = false;
+    
+    // Protection contre les rechargements multiples
+    let isLoading = false;
+    let isLoadingFemmes = false;
+    let isLoadingHommes = false;
+    let reloadDebounceTimer = null;
+    
+    // Debounce function pour éviter les rechargements trop fréquents
+    function debounceReload(callback, delay = 500) {
+      clearTimeout(reloadDebounceTimer);
+      reloadDebounceTimer = setTimeout(() => {
+        if (!isLoading) {
+          callback();
+        }
+      }, delay);
+    }
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (initFirebaseDB && typeof initFirebaseDB === 'function') {
+        const initialized = initFirebaseDB();
+        window.firebaseInitialized = initialized;
+        firebaseInitialized = initialized; // Local reference
+        if (initialized) {
+          // Charger toutes les données depuis Firebase de manière non-bloquante
+          isLoading = true;
+          try {
+            if (typeof loadAllDataFromFirebase === 'function') {
+              await loadAllDataFromFirebase();
+            }
+          } catch (error) {
+            console.error('Erreur lors du chargement Firebase:', error);
+          } finally {
+            isLoading = false;
+          }
+          
+          // Écouter les changements en temps réel avec debounce
+          if (typeof watchImages === 'function') {
+            watchImages(() => {
+              // Recharger seulement si l'accordéon correspondant est ouvert
+              debounceReload(() => {
+                const activeSection = document.querySelector('.accordion-item.active')?.dataset.section;
+                if (activeSection === 'team' && typeof loadTeamMembers === 'function') {
+                  loadTeamMembers();
+                } else if (activeSection === 'femmes' && typeof loadFemmesCatalog === 'function') {
+                  loadFemmesCatalog();
+                } else if (activeSection === 'hommes' && typeof loadHommesCatalog === 'function') {
+                  loadHommesCatalog();
+                } else if (activeSection === 'partenaires' && typeof loadPartenaires === 'function') {
+                  loadPartenaires();
+                }
+              });
+            });
+          }
+          
+          if (typeof watchPositions === 'function') {
+            watchPositions(() => {
+              // Mettre à jour les positions dans l'interface sans recharger
+              debounceReload(() => {
+                document.querySelectorAll('[id^="preview_"]').forEach(img => {
+                  const imageId = img.id.replace('preview_', '');
+                  const position = localStorage.getItem(`image_position_${imageId}`);
+                  if (position) {
+                    img.style.objectPosition = position;
+                    const display = document.querySelector(`#position_display_${imageId}`);
+                    if (display) {
+                      display.textContent = position;
+                    }
+                  }
+                });
+              }, 300);
+            });
+          }
+          
+          if (typeof watchTeamMembers === 'function') {
+            watchTeamMembers(() => {
+              debounceReload(() => {
+                const activeSection = document.querySelector('.accordion-item.active')?.dataset.section;
+                if (activeSection === 'team' && typeof loadTeamMembers === 'function') {
+                  loadTeamMembers();
+                }
+              });
+            });
+          }
+          
+          if (typeof watchPartenaires === 'function') {
+            watchPartenaires(() => {
+              debounceReload(() => {
+                const activeSection = document.querySelector('.accordion-item.active')?.dataset.section;
+                if (activeSection === 'partenaires' && typeof loadPartenaires === 'function') {
+                  loadPartenaires();
+                }
+              });
+            });
+          }
+        }
+      }
+    });
+
+    // Load saved images from localStorage (avec cache Firebase)
+    function getSavedImage(imageId) {
+      return localStorage.getItem(`image_${imageId}`) || null;
+    }
+
+    // Save image to localStorage and Firebase
+    function saveImage(imageId, imageUrl) {
+      localStorage.setItem(`image_${imageId}`, imageUrl);
+      if (window.firebaseInitialized && typeof saveImageToFirebase === 'function') {
+        saveImageToFirebase(imageId, imageUrl);
+      }
+    }
+
+    // Get current image URL (saved or default)
+    function getCurrentImage(config) {
+      // Check if it's a catalog image
+      if (config.id.startsWith('femme_')) {
+        const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+        const image = femmesImages.find(img => img.id === config.id);
+        return image ? image.url : config.default;
+      } else if (config.id.startsWith('homme_')) {
+        const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+        const image = hommesImages.find(img => img.id === config.id);
+        return image ? image.url : config.default;
+      }
+      
+      // Check if it's a hero image (hero1 or hero2)
+      if (config.id === 'hero1' || config.id === 'hero2') {
+        const heroIndex = config.id === 'hero1' ? '1' : '2';
+        // Try both formats for compatibility
+        const saved = localStorage.getItem(`image_hero${heroIndex}`) || localStorage.getItem(`image_${config.id}`);
+        return saved || config.default;
+      }
+      
+      const saved = getSavedImage(config.id);
+      return saved || config.default;
+    }
+    
+    // Get image position (object-position)
+    function getImagePosition(imageId) {
+      // Check if it's a hero image (hero1 or hero2)
+      if (imageId === 'hero1' || imageId === 'hero2') {
+        const heroIndex = imageId === 'hero1' ? '1' : '2';
+        // Try both formats for compatibility
+        const saved = localStorage.getItem(`image_position_hero${heroIndex}`) || localStorage.getItem(`image_position_${imageId}`);
+        if (saved) {
+          return saved;
+        }
+        return 'center center';
+      }
+      
+      const saved = localStorage.getItem(`image_position_${imageId}`);
+      if (saved) {
+        return saved;
+      }
+      // Default positions for team members
+      const defaultPositions = {
+        'julio': 'center 35%',
+        'soren': 'center 8%',
+        'sun': 'center 3%',
+        'inaya': 'center 3%',
+        'andres': 'center 0%',
+        'yoruhime': 'center 18%'
+      };
+      return defaultPositions[imageId] || 'center center';
+    }
+    
+    // Save image position
+    function saveImagePosition(imageId, position) {
+      // Check if it's a hero image (hero1 or hero2)
+      if (imageId === 'hero1' || imageId === 'hero2') {
+        const heroIndex = imageId === 'hero1' ? '1' : '2';
+        // Save with both formats for compatibility
+        localStorage.setItem(`image_position_hero${heroIndex}`, position); // For accueil.html
+        localStorage.setItem(`image_position_${imageId}`, position); // For admin
+        // Save to Firebase with the hero index format
+        if (firebaseInitialized && typeof savePositionToFirebase === 'function') {
+          savePositionToFirebase(`hero${heroIndex}`, position);
+        }
+      } else {
+        localStorage.setItem(`image_position_${imageId}`, position);
+        if (firebaseInitialized && typeof savePositionToFirebase === 'function') {
+          savePositionToFirebase(imageId, position);
+        }
+      }
+      
+      // Update preview
+      const previewImg = document.querySelector(`#preview_${imageId}`);
+      if (previewImg) {
+        previewImg.style.objectPosition = position;
+      }
+      // Update display
+      const positionDisplay = document.querySelector(`#position_display_${imageId}`);
+      if (positionDisplay) {
+        positionDisplay.textContent = position;
+      }
+    }
+    
+    // Adjust image position
+    function adjustImagePosition(imageId, direction) {
+      const current = getImagePosition(imageId);
+      const parts = current.trim().split(/\s+/);
+      let x = parts[0] || 'center';
+      let y = parts[1] || 'center';
+      
+      // Convert center to 50%
+      let xValue = 50;
+      if (x === 'center') {
+        xValue = 50;
+      } else if (x.includes('%')) {
+        xValue = parseFloat(x);
+      } else if (x.includes('px')) {
+        xValue = parseFloat(x);
+      }
+      
+      let yValue = 50;
+      if (y === 'center') {
+        yValue = 50;
+      } else if (y.includes('%')) {
+        yValue = parseFloat(y);
+      } else if (y.includes('px')) {
+        yValue = parseFloat(y);
+      }
+      
+      // Adjust based on direction
+      switch(direction) {
+        case 'left':
+          xValue = Math.max(0, xValue - 5);
+          break;
+        case 'right':
+          xValue = Math.min(100, xValue + 5);
+          break;
+        case 'up':
+          yValue = Math.max(0, yValue - 5);
+          break;
+        case 'down':
+          yValue = Math.min(100, yValue + 5);
+          break;
+      }
+      
+      // Always use percentage format
+      const newPosition = `${xValue}% ${yValue}%`;
+      saveImagePosition(imageId, newPosition);
+    }
+    
+    // Reset image position to default
+    function resetImagePosition(imageId) {
+      const defaultPositions = {
+        'julio': 'center 35%',
+        'soren': 'center 8%',
+        'sun': 'center 3%',
+        'inaya': 'center 3%',
+        'andres': 'center 0%',
+        'yoruhime': 'center 18%'
+      };
+      const defaultPosition = defaultPositions[imageId] || 'center center';
+      saveImagePosition(imageId, defaultPosition);
+    }
+
+    // Get team member info
+    function getTeamMemberInfo(memberId) {
+      const teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      const member = teamMembers.find(m => m.id === memberId);
+      if (member) {
+        return member;
+      }
+      // Return default info from config
+      const config = imageConfig.team.find(t => t.id === memberId);
+      if (config) {
+        const defaultInfo = {
+          'julio': { firstName: 'Julio', lastName: 'Alvarez', grade: 'Patron', phone: '682-6030' },
+          'soren': { firstName: 'Soren', lastName: 'Wanks', grade: 'Co-Patron', phone: '575-5535' },
+          'sun': { firstName: 'Sun', lastName: 'Price', grade: 'DRH', phone: '740-3572' },
+          'inaya': { firstName: 'Inaya', lastName: 'Kinslow', grade: 'DRH', phone: '344-6279' },
+          'andres': { firstName: 'Andres', lastName: 'Henarnandez', grade: 'Responsable Coiffeur', phone: '212-0212' },
+          'yoruhime': { firstName: 'Yoruhime', lastName: 'Yoshikage', grade: 'Responsable Tatoueur', phone: '672-0651' }
+        };
+        return defaultInfo[memberId] || { firstName: '', lastName: '', grade: '', phone: '' };
+      }
+      return { firstName: '', lastName: '', grade: '', phone: '' };
+    }
+
+    // Save team member info
+    function saveTeamMemberInfo(memberId, info) {
+      const teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      const existingIndex = teamMembers.findIndex(m => m.id === memberId);
+      const memberData = { id: memberId, ...info };
+      
+      if (existingIndex >= 0) {
+        teamMembers[existingIndex] = memberData;
+      } else {
+        teamMembers.push(memberData);
+      }
+      
+      localStorage.setItem('team_members', JSON.stringify(teamMembers));
+      if (firebaseInitialized && typeof saveTeamMembersToFirebase === 'function') {
+        saveTeamMembersToFirebase(teamMembers);
+      }
+    }
+    
+    // Update team member info from form fields
+    function updateTeamMemberInfo(memberId) {
+      const firstName = document.getElementById(`firstName_${memberId}`)?.value || '';
+      const lastName = document.getElementById(`lastName_${memberId}`)?.value || '';
+      const grade = document.getElementById(`grade_${memberId}`)?.value || '';
+      const phone = document.getElementById(`phone_${memberId}`)?.value || '';
+      
+      saveTeamMemberInfo(memberId, { firstName, lastName, grade, phone });
+      
+      // Update the label
+      const item = document.querySelector(`[data-image-id="${memberId}"]`);
+      if (item) {
+        const label = item.querySelector('.image-label');
+        if (label) {
+          const fullName = `${firstName} ${lastName}`.trim() || 'Nouvel employé';
+          label.textContent = fullName;
+        }
+      }
+    }
+
+    // Create image item HTML
+    function createImageItem(config, container, isCustom = false) {
+      const currentImage = getCurrentImage(config);
+      const item = document.createElement('div');
+      item.className = 'image-item';
+      item.dataset.imageId = config.id;
+      item.dataset.isCustom = isCustom;
+      
+      const isCatalogImage = config.id.startsWith('femme_') || config.id.startsWith('homme_');
+      const isTeamMember = imageConfig.team.some(t => t.id === config.id) || (isCustom && config.id.startsWith('team_'));
+      const deleteBtn = (isCustom || isCatalogImage || isTeamMember) ? `<button class="delete-image-btn" onclick="${isCatalogImage ? 'deleteCatalogImage' : (isTeamMember ? 'deleteTeamMember' : 'deleteCustomImage')}('${config.id}')" title="Supprimer">×</button>` : '';
+      const resetBtn = (!isCustom && !isCatalogImage && !isTeamMember) ? `<button class="remove-btn" onclick="resetImage('${config.id}')" title="Réinitialiser">×</button>` : '';
+      
+      let teamFields = '';
+      if (isTeamMember) {
+        const memberInfo = getTeamMemberInfo(config.id);
+        teamFields = `
+          <div class="team-fields">
+            <input type="text" class="input-url" id="firstName_${config.id}" placeholder="Prénom" value="${memberInfo.firstName || ''}" onchange="updateTeamMemberInfo('${config.id}')">
+            <input type="text" class="input-url" id="lastName_${config.id}" placeholder="Nom" value="${memberInfo.lastName || ''}" onchange="updateTeamMemberInfo('${config.id}')">
+            <input type="text" class="input-url" id="grade_${config.id}" placeholder="Grade" value="${memberInfo.grade || ''}" onchange="updateTeamMemberInfo('${config.id}')">
+            <input type="text" class="input-url" id="phone_${config.id}" placeholder="Téléphone" value="${memberInfo.phone || ''}" onchange="updateTeamMemberInfo('${config.id}')">
+          </div>
+        `;
+      }
+      
+      // Get image position
+      const imagePosition = getImagePosition(config.id);
+      const isCircularPreview = isTeamMember; // Circular for team, rectangular for others
+      
+      // Image preview with controls
+      const imagePreview = `
+        <div class="image-preview-container">
+          <div class="image-preview-wrapper ${isCircularPreview ? '' : 'rectangular'}">
+            <img id="preview_${config.id}" src="${currentImage}" alt="Preview" style="object-position: ${imagePosition}; object-fit: cover; width: 100%; height: 100%;">
+          </div>
+          <div class="image-position-controls">
+            <button class="position-btn" onclick="adjustImagePosition('${config.id}', 'left')" title="Gauche">←</button>
+            <button class="position-btn" onclick="adjustImagePosition('${config.id}', 'up')" title="Haut">↑</button>
+            <span class="position-display" id="position_display_${config.id}">${imagePosition}</span>
+            <button class="position-btn" onclick="adjustImagePosition('${config.id}', 'down')" title="Bas">↓</button>
+            <button class="position-btn" onclick="adjustImagePosition('${config.id}', 'right')" title="Droite">→</button>
+            <button class="position-btn" onclick="resetImagePosition('${config.id}')" title="Réinitialiser" style="font-size: 0.9rem; width: auto; padding: 0 0.75rem;">Reset</button>
+          </div>
+        </div>
+      `;
+      
+      item.innerHTML = `
+        ${deleteBtn}
+        <img src="${currentImage}" alt="${config.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3EImage%3C/text%3E%3C/svg%3E'">
+        <div class="image-label">${config.name}</div>
+        ${resetBtn}
+        ${imagePreview}
+        <input type="text" class="input-url" placeholder="URL de l'image" value="${currentImage}" onchange="updateImageUrl('${config.id}', this.value); updatePreviewImage('${config.id}', this.value)">
+        <button class="btn-small" onclick="updateImageUrl('${config.id}', this.previousElementSibling.value)">Mettre à jour</button>
+        ${teamFields}
+      `;
+      
+      // Drag and drop
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        item.classList.add('drag-over');
+      });
+      
+      item.addEventListener('dragleave', () => {
+        item.classList.remove('drag-over');
+      });
+      
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        item.classList.remove('drag-over');
+        handleFileDrop(e, config.id);
+      });
+      
+      container.appendChild(item);
+    }
+
+    // Handle file drop
+    function handleFileDrop(e, imageId) {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target.result;
+            updateImageUrl(imageId, dataUrl);
+            // Update the input field
+            const item = document.querySelector(`[data-image-id="${imageId}"]`);
+            if (item) {
+              const input = item.querySelector('.input-url');
+              if (input) input.value = dataUrl;
+            }
+          };
+          reader.readAsDataURL(file);
+        } else {
+          alert('Veuillez déposer une image (JPG, PNG, etc.)');
+        }
+      }
+    }
+
+    // Update preview image
+    function updatePreviewImage(imageId, url) {
+      const previewImg = document.querySelector(`#preview_${imageId}`);
+      if (previewImg) {
+        previewImg.src = url;
+      }
+      const mainImg = document.querySelector(`[data-image-id="${imageId}"] img:not(#preview_${imageId})`);
+      if (mainImg) {
+        mainImg.src = url;
+      }
+    }
+    
+    // Update image URL
+    function updateImageUrl(imageId, url) {
+      if (!url) return;
+      
+      // Check if it's a catalog image (femmes/hommes)
+      if (imageId.startsWith('femme_') || imageId.startsWith('homme_')) {
+        updateCatalogImageUrl(imageId, url);
+        updatePreviewImage(imageId, url);
+        return;
+      }
+      
+      // Check if it's a hero image (hero1 or hero2)
+      if (imageId === 'hero1' || imageId === 'hero2') {
+        const heroIndex = imageId === 'hero1' ? '1' : '2';
+        // Save with both formats for compatibility
+        saveImage(`hero${heroIndex}`, url); // image_hero1 or image_hero2 (for accueil.html)
+        saveImage(imageId, url); // image_hero1 or image_hero2 (for admin)
+        updatePreviewImage(imageId, url);
+        return;
+      }
+      
+      saveImage(imageId, url);
+      updatePreviewImage(imageId, url);
+    }
+
+    // Reset image to default
+    function resetImage(imageId) {
+      const config = [...imageConfig.team, ...imageConfig.gallery].find(c => c.id === imageId) || 
+                     (imageConfig.hero.id === imageId ? imageConfig.hero : imageConfig.map);
+      
+      if (config) {
+        localStorage.removeItem(`image_${imageId}`);
+        updateImageUrl(imageId, config.default);
+        const item = document.querySelector(`[data-image-id="${imageId}"]`);
+        if (item) {
+          const input = item.querySelector('.input-url');
+          if (input) input.value = config.default;
+        }
+      }
+    }
+
+    // Add new gallery image (global function)
+    window.addNewGalleryImage = function() {
+      const galleryContainer = document.getElementById('galleryImages');
+      const existingImages = galleryContainer.querySelectorAll('.image-item').length;
+      const customImages = JSON.parse(localStorage.getItem('custom_gallery_images') || '[]');
+      const newId = `gallery_custom_${Date.now()}`;
+      
+      const newConfig = {
+        id: newId,
+        name: `Galerie ${existingImages + 1}`,
+        default: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENouvelle%20Image%3C/text%3E%3C/svg%3E'
+      };
+      
+      customImages.push(newId);
+      localStorage.setItem('custom_gallery_images', JSON.stringify(customImages));
+      if (firebaseInitialized && typeof saveCustomGalleryToFirebase === 'function') {
+        saveCustomGalleryToFirebase(customImages);
+      }
+      
+      createImageItem(newConfig, galleryContainer, true);
+    };
+    
+    // Delete custom image
+    function deleteCustomImage(imageId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+        // Remove from DOM
+        const item = document.querySelector(`[data-image-id="${imageId}"]`);
+        if (item) {
+          item.remove();
+        }
+        
+        // Remove from localStorage
+        localStorage.removeItem(`image_${imageId}`);
+        
+        // Remove from custom images list
+        const customImages = JSON.parse(localStorage.getItem('custom_gallery_images') || '[]');
+        const updated = customImages.filter(id => id !== imageId);
+        localStorage.setItem('custom_gallery_images', JSON.stringify(updated));
+        if (firebaseInitialized && typeof saveCustomGalleryToFirebase === 'function') {
+          saveCustomGalleryToFirebase(updated);
+        }
+      }
+    }
+    
+    // Clean and extract URLs from various formats (Goopics, markdown, HTML, etc.)
+    window.cleanFemmesUrls = function() {
+      const textarea = document.getElementById('femmesUrlsBulk');
+      if (!textarea) return;
+      
+      let text = textarea.value.trim();
+      if (!text) {
+        alert('Le textarea est vide');
+        return;
+      }
+      
+      // Extraire toutes les URLs (supporte plusieurs formats)
+      const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+      const urls = text.match(urlPattern) || [];
+      
+      // Nettoyer et filtrer les URLs d'images
+      const cleanUrls = urls
+        .map(url => {
+          // Enlever les caractères de fin de ligne ou de ponctuation
+          url = url.replace(/[.,;:!?)\]}]+$/, '').trim();
+          
+          // Traiter les URLs Goopics - Format souhaité: https://i.goopics.net/ID.png (sans chemins)
+          if (url.includes('goopics.net')) {
+            // Cas 1: URL avec chemin comme https://i.goopics.net/800/gp7sfx.png
+            // → Extraire uniquement l'ID final (gp7sfx) → https://i.goopics.net/gp7sfx.png
+            let match = url.match(/i\.goopics\.net\/[^\/]+\/([a-zA-Z0-9]+)(?:\.(png|jpg|jpeg|gif|webp))?/i);
+            if (match) {
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+            
+            // Cas 2: URL déjà au bon format https://i.goopics.net/ID.png
+            match = url.match(/i\.goopics\.net\/([a-zA-Z0-9]+)(?:\.(png|jpg|jpeg|gif|webp))?/i);
+            if (match) {
+              // Ignorer les URLs comme https://i.goopics.net/i.png
+              if (match[1] === 'i' && (!match[2] || match[2] === 'png')) {
+                return null;
+              }
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+            
+            // Cas 3: URL de page goopics.net/ID → convertir en i.goopics.net/ID.png
+            match = url.match(/goopics\.net\/([a-zA-Z0-9]+)(?:\/|$)/i);
+            if (match) {
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+          }
+          
+          return url;
+        })
+        .filter(url => url && url.length > 0 && (url.startsWith('http://') || url.startsWith('https://')))
+        .filter((url, index, self) => self.indexOf(url) === index); // Supprimer les doublons
+      
+      if (cleanUrls.length === 0) {
+        alert('Aucune URL valide trouvée dans le texte');
+        return;
+      }
+      
+      // Mettre à jour le textarea avec les URLs nettoyées (une par ligne)
+      textarea.value = cleanUrls.join('\n');
+      
+      // Afficher un message
+      const resultDiv = document.getElementById('femmesBulkResult');
+      if (resultDiv) {
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = 'rgba(32, 178, 170, 0.1)';
+        resultDiv.style.border = '1px solid var(--primary)';
+        resultDiv.style.borderRadius = '10px';
+        resultDiv.style.padding = '1rem';
+        resultDiv.style.color = 'var(--primary)';
+        resultDiv.innerHTML = `🧹 ${cleanUrls.length} URL(s) extraite(s) et nettoyée(s) !`;
+        setTimeout(() => {
+          resultDiv.style.display = 'none';
+        }, 3000);
+      }
+    };
+    
+    // Clean and extract URLs for hommes
+    window.cleanHommesUrls = function() {
+      const textarea = document.getElementById('hommesUrlsBulk');
+      if (!textarea) return;
+      
+      let text = textarea.value.trim();
+      if (!text) {
+        alert('Le textarea est vide');
+        return;
+      }
+      
+      // Extraire toutes les URLs (supporte plusieurs formats)
+      const urlPattern = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+      const urls = text.match(urlPattern) || [];
+      
+      // Nettoyer et filtrer les URLs d'images
+      const cleanUrls = urls
+        .map(url => {
+          // Enlever les caractères de fin de ligne ou de ponctuation
+          url = url.replace(/[.,;:!?)\]}]+$/, '').trim();
+          
+          // Traiter les URLs Goopics - Format souhaité: https://i.goopics.net/ID.png (sans chemins)
+          if (url.includes('goopics.net')) {
+            // Cas 1: URL avec chemin comme https://i.goopics.net/800/gp7sfx.png
+            // → Extraire uniquement l'ID final (gp7sfx) → https://i.goopics.net/gp7sfx.png
+            let match = url.match(/i\.goopics\.net\/[^\/]+\/([a-zA-Z0-9]+)(?:\.(png|jpg|jpeg|gif|webp))?/i);
+            if (match) {
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+            
+            // Cas 2: URL déjà au bon format https://i.goopics.net/ID.png
+            match = url.match(/i\.goopics\.net\/([a-zA-Z0-9]+)(?:\.(png|jpg|jpeg|gif|webp))?/i);
+            if (match) {
+              // Ignorer les URLs comme https://i.goopics.net/i.png
+              if (match[1] === 'i' && (!match[2] || match[2] === 'png')) {
+                return null;
+              }
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+            
+            // Cas 3: URL de page goopics.net/ID → convertir en i.goopics.net/ID.png
+            match = url.match(/goopics\.net\/([a-zA-Z0-9]+)(?:\/|$)/i);
+            if (match) {
+              return `https://i.goopics.net/${match[1]}.png`;
+            }
+          }
+          
+          return url;
+        })
+        .filter(url => url && url.length > 0 && (url.startsWith('http://') || url.startsWith('https://')))
+        .filter((url, index, self) => self.indexOf(url) === index); // Supprimer les doublons
+      
+      if (cleanUrls.length === 0) {
+        alert('Aucune URL valide trouvée dans le texte');
+        return;
+      }
+      
+      // Mettre à jour le textarea avec les URLs nettoyées (une par ligne)
+      textarea.value = cleanUrls.join('\n');
+      
+      // Afficher un message
+      const resultDiv = document.getElementById('hommesBulkResult');
+      if (resultDiv) {
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = 'rgba(32, 178, 170, 0.1)';
+        resultDiv.style.border = '1px solid var(--primary)';
+        resultDiv.style.borderRadius = '10px';
+        resultDiv.style.padding = '1rem';
+        resultDiv.style.color = 'var(--primary)';
+        resultDiv.innerHTML = `🧹 ${cleanUrls.length} URL(s) extraite(s) et nettoyée(s) !`;
+        setTimeout(() => {
+          resultDiv.style.display = 'none';
+        }, 3000);
+      }
+    };
+    
+    // Add bulk femmes URLs (global function)
+    window.addBulkFemmesUrls = function() {
+      const textarea = document.getElementById('femmesUrlsBulk');
+      const resultDiv = document.getElementById('femmesBulkResult');
+      if (!textarea) return;
+      
+      const urlsText = textarea.value.trim();
+      if (!urlsText) {
+        alert('Veuillez entrer au moins une URL');
+        return;
+      }
+      
+      // Séparer les URLs par ligne (supprimer les lignes vides)
+      const urls = urlsText.split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0 && (url.startsWith('http://') || url.startsWith('https://')));
+      
+      if (urls.length === 0) {
+        alert('Aucune URL valide trouvée. Les URLs doivent commencer par http:// ou https://');
+        return;
+      }
+      
+      // Charger les images existantes
+      let femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+      
+      // Trouver le prochain numéro disponible
+      let nextNumber = 1;
+      if (femmesImages.length > 0) {
+        const numbers = femmesImages
+          .map(img => {
+            const match = img.id.match(/femme_(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          })
+          .filter(n => n > 0)
+          .sort((a, b) => b - a);
+        nextNumber = numbers.length > 0 ? numbers[0] + 1 : femmesImages.length + 1;
+      }
+      
+      // Ajouter toutes les URLs dans l'ordre
+      urls.forEach((url, index) => {
+        const currentNumber = nextNumber + index;
+        const newId = `femme_${currentNumber}`;
+        const newImage = {
+          id: newId,
+          url: url
+        };
+        femmesImages.push(newImage);
+      });
+      
+      // Sauvegarder
+      localStorage.setItem('femmes_images', JSON.stringify(femmesImages));
+      if (firebaseInitialized && typeof saveFemmesImagesToFirebase === 'function') {
+        saveFemmesImagesToFirebase(femmesImages);
+      }
+      
+      // Afficher le résultat
+      resultDiv.style.display = 'block';
+      resultDiv.style.background = 'rgba(0, 255, 0, 0.1)';
+      resultDiv.style.border = '1px solid #4caf50';
+      resultDiv.style.borderRadius = '10px';
+      resultDiv.style.padding = '1rem';
+      resultDiv.style.color = '#4caf50';
+      resultDiv.innerHTML = `✅ ${urls.length} image(s) ajoutée(s) avec succès ! (de femme_${nextNumber} à femme_${nextNumber + urls.length - 1})`;
+      
+      // Vider le textarea
+      textarea.value = '';
+      
+      // Recharger le catalogue
+      loadFemmesCatalog();
+      
+      // Masquer le message après 5 secondes
+      setTimeout(() => {
+        resultDiv.style.display = 'none';
+      }, 5000);
+    };
+    
+    // Add new femmes image (global function)
+    window.addNewFemmesImage = function() {
+      const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+      
+      // Trouver le prochain numéro disponible
+      let nextNumber = 1;
+      if (femmesImages.length > 0) {
+        const numbers = femmesImages
+          .map(img => {
+            const match = img.id.match(/femme_(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          })
+          .filter(n => n > 0)
+          .sort((a, b) => b - a);
+        nextNumber = numbers.length > 0 ? numbers[0] + 1 : femmesImages.length + 1;
+      }
+      
+      const newId = `femme_${nextNumber}`;
+      const newImage = {
+        id: newId,
+        url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENouvelle%20Image%3C/text%3E%3C/svg%3E'
+      };
+      
+      femmesImages.push(newImage);
+      localStorage.setItem('femmes_images', JSON.stringify(femmesImages));
+      if (firebaseInitialized && typeof saveFemmesImagesToFirebase === 'function') {
+        saveFemmesImagesToFirebase(femmesImages);
+      }
+      
+      loadFemmesCatalog();
+    };
+    
+    // Add bulk hommes URLs (global function)
+    window.addBulkHommesUrls = function() {
+      const textarea = document.getElementById('hommesUrlsBulk');
+      const resultDiv = document.getElementById('hommesBulkResult');
+      if (!textarea) return;
+      
+      const urlsText = textarea.value.trim();
+      if (!urlsText) {
+        alert('Veuillez entrer au moins une URL');
+        return;
+      }
+      
+      // Séparer les URLs par ligne (supprimer les lignes vides)
+      const urls = urlsText.split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0 && (url.startsWith('http://') || url.startsWith('https://')));
+      
+      if (urls.length === 0) {
+        alert('Aucune URL valide trouvée. Les URLs doivent commencer par http:// ou https://');
+        return;
+      }
+      
+      // Charger les images existantes
+      let hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+      
+      // Trouver le prochain numéro disponible
+      let nextNumber = 1;
+      if (hommesImages.length > 0) {
+        const numbers = hommesImages
+          .map(img => {
+            const match = img.id.match(/homme_(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          })
+          .filter(n => n > 0)
+          .sort((a, b) => b - a);
+        nextNumber = numbers.length > 0 ? numbers[0] + 1 : hommesImages.length + 1;
+      }
+      
+      // Ajouter toutes les URLs dans l'ordre
+      urls.forEach((url, index) => {
+        const currentNumber = nextNumber + index;
+        const newId = `homme_${currentNumber}`;
+        const newImage = {
+          id: newId,
+          url: url
+        };
+        hommesImages.push(newImage);
+      });
+      
+      // Sauvegarder
+      localStorage.setItem('hommes_images', JSON.stringify(hommesImages));
+      if (firebaseInitialized && typeof saveHommesImagesToFirebase === 'function') {
+        saveHommesImagesToFirebase(hommesImages);
+      }
+      
+      // Afficher le résultat
+      resultDiv.style.display = 'block';
+      resultDiv.style.background = 'rgba(0, 255, 0, 0.1)';
+      resultDiv.style.border = '1px solid #4caf50';
+      resultDiv.style.borderRadius = '10px';
+      resultDiv.style.padding = '1rem';
+      resultDiv.style.color = '#4caf50';
+      resultDiv.innerHTML = `✅ ${urls.length} image(s) ajoutée(s) avec succès ! (de homme_${nextNumber} à homme_${nextNumber + urls.length - 1})`;
+      
+      // Vider le textarea
+      textarea.value = '';
+      
+      // Recharger le catalogue
+      loadHommesCatalog();
+      
+      // Masquer le message après 5 secondes
+      setTimeout(() => {
+        resultDiv.style.display = 'none';
+      }, 5000);
+    };
+    
+    // Export femmes data (global function)
+    window.exportFemmesData = function() {
+      const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+      const exportData = {
+        femmes: femmesImages,
+        hommes: []
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      const resultDiv = document.getElementById('femmesExportResult');
+      const textarea = document.getElementById('femmesExportData');
+      if (resultDiv && textarea) {
+        textarea.value = jsonString;
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+    
+    // Copy femmes export (global function)
+    window.copyFemmesExport = function() {
+      const textarea = document.getElementById('femmesExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('✅ Données copiées ! Collez-les dans catalog-images.json');
+      }
+    };
+    
+    // Export hommes data (global function)
+    window.exportHommesData = function() {
+      const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+      const exportData = {
+        femmes: [],
+        hommes: hommesImages
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      const resultDiv = document.getElementById('hommesExportResult');
+      const textarea = document.getElementById('hommesExportData');
+      if (resultDiv && textarea) {
+        textarea.value = jsonString;
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+    
+    // Copy hommes export (global function)
+    window.copyHommesExport = function() {
+      const textarea = document.getElementById('hommesExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('✅ Données copiées ! Collez-les dans catalog-images.json');
+      }
+    };
+    
+    // Export all data (global function) - Export complet pour catalog-images.json
+    window.exportAllCatalogData = function() {
+      const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+      const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+      const exportData = {
+        femmes: femmesImages,
+        hommes: hommesImages
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // Afficher le JSON dans la zone d'export
+      const resultDiv = document.getElementById('globalExportResult');
+      const textarea = document.getElementById('globalExportData');
+      if (resultDiv && textarea) {
+        textarea.value = jsonString;
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      
+      // Télécharger automatiquement le fichier
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'catalog-images.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    
+    // Copy global export (global function)
+    window.copyGlobalExport = function() {
+      const textarea = document.getElementById('globalExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('✅ JSON copié ! Vous pouvez maintenant le coller dans catalog-images.json');
+      }
+    };
+    
+    // Export team data (global function)
+    window.exportTeamData = function() {
+      const teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      const exportData = {
+        team_members: teamMembers
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      const resultDiv = document.getElementById('teamExportResult');
+      const textarea = document.getElementById('teamExportData');
+      if (resultDiv && textarea) {
+        textarea.value = jsonString;
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      
+      // Télécharger automatiquement le fichier
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'team-members.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    
+    // Copy team export (global function)
+    window.copyTeamExport = function() {
+      const textarea = document.getElementById('teamExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('✅ Données copiées !');
+      }
+    };
+    
+    // Export gallery data (global function)
+    window.exportGalleryData = function() {
+      const customImages = JSON.parse(localStorage.getItem('custom_gallery_images') || '[]');
+      const exportData = {
+        gallery: customImages
+      };
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      const resultDiv = document.getElementById('galleryExportResult');
+      const textarea = document.getElementById('galleryExportData');
+      if (resultDiv && textarea) {
+        textarea.value = jsonString;
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      
+      // Télécharger automatiquement le fichier
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'gallery-images.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    };
+    
+    // Copy gallery export (global function)
+    window.copyGalleryExport = function() {
+      const textarea = document.getElementById('galleryExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('✅ Données copiées !');
+      }
+    };
+    
+    // Add new hommes image (global function)
+    window.addNewHommesImage = function() {
+      const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+      
+      // Trouver le prochain numéro disponible
+      let nextNumber = 1;
+      if (hommesImages.length > 0) {
+        const numbers = hommesImages
+          .map(img => {
+            const match = img.id.match(/homme_(\d+)/);
+            return match ? parseInt(match[1]) : 0;
+          })
+          .filter(n => n > 0)
+          .sort((a, b) => b - a);
+        nextNumber = numbers.length > 0 ? numbers[0] + 1 : hommesImages.length + 1;
+      }
+      
+      const newId = `homme_${nextNumber}`;
+      const newImage = {
+        id: newId,
+        url: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENouvelle%20Image%3C/text%3E%3C/svg%3E'
+      };
+      
+      hommesImages.push(newImage);
+      localStorage.setItem('hommes_images', JSON.stringify(hommesImages));
+      if (firebaseInitialized && typeof saveHommesImagesToFirebase === 'function') {
+        saveHommesImagesToFirebase(hommesImages);
+      }
+      
+      loadHommesCatalog();
+    };
+    
+    // Load femmes catalog in admin
+    function loadFemmesCatalog() {
+      if (isLoadingFemmes) return; // Éviter les rechargements simultanés
+      
+      const container = document.getElementById('femmesCatalog');
+      if (!container) return;
+      
+      isLoadingFemmes = true;
+      
+      try {
+        let femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+        
+        if (femmesImages.length === 0) {
+          for (let i = 1; i <= 6; i++) {
+            femmesImages.push({ id: `femme_${i}`, url: `img/femmes/${i}.png` });
+          }
+          localStorage.setItem('femmes_images', JSON.stringify(femmesImages));
+        }
+        
+        container.innerHTML = '';
+        // Trier les images par numéro d'ID pour garantir l'ordre
+        femmesImages.sort((a, b) => {
+          const matchA = a.id.match(/femme_(\d+)/);
+          const matchB = b.id.match(/femme_(\d+)/);
+          const numA = matchA ? parseInt(matchA[1]) : 0;
+          const numB = matchB ? parseInt(matchB[1]) : 0;
+          return numA - numB;
+        });
+        
+        // Charger les images de manière asynchrone pour éviter le blocage
+        let loadedCount = 0;
+        femmesImages.forEach((item, index) => {
+          // Utiliser requestAnimationFrame pour un chargement fluide
+          requestAnimationFrame(() => {
+            const match = item.id.match(/femme_(\d+)/);
+            const number = match ? parseInt(match[1]) - 1 : index;
+            
+            const config = {
+              id: item.id,
+              name: `Coupe ${number}`,
+              default: item.url
+            };
+            createImageItem(config, container, true);
+            
+            loadedCount++;
+            // Marquer comme terminé après la dernière image
+            if (loadedCount === femmesImages.length) {
+              isLoadingFemmes = false;
+            }
+          });
+        });
+        
+        // Si aucune image, marquer comme terminé immédiatement
+        if (femmesImages.length === 0) {
+          isLoadingFemmes = false;
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du catalogue femmes:', error);
+        isLoadingFemmes = false;
+      }
+    }
+    
+    // Load hommes catalog in admin
+    function loadHommesCatalog() {
+      if (isLoadingHommes) return; // Éviter les rechargements simultanés
+      
+      const container = document.getElementById('hommesCatalog');
+      if (!container) return;
+      
+      isLoadingHommes = true;
+      
+      try {
+        let hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+        
+        if (hommesImages.length === 0) {
+          for (let i = 1; i <= 6; i++) {
+            hommesImages.push({ id: `homme_${i}`, url: `img/hommes/${i}.png` });
+          }
+          localStorage.setItem('hommes_images', JSON.stringify(hommesImages));
+        }
+        
+        container.innerHTML = '';
+        // Trier les images par numéro d'ID pour garantir l'ordre
+        hommesImages.sort((a, b) => {
+          const matchA = a.id.match(/homme_(\d+)/);
+          const matchB = b.id.match(/homme_(\d+)/);
+          const numA = matchA ? parseInt(matchA[1]) : 0;
+          const numB = matchB ? parseInt(matchB[1]) : 0;
+          return numA - numB;
+        });
+        
+        // Charger les images de manière asynchrone pour éviter le blocage
+        let loadedCount = 0;
+        hommesImages.forEach((item, index) => {
+          // Utiliser requestAnimationFrame pour un chargement fluide
+          requestAnimationFrame(() => {
+            const match = item.id.match(/homme_(\d+)/);
+            const number = match ? parseInt(match[1]) - 1 : index;
+            
+            const config = {
+              id: item.id,
+              name: `Coupe ${number}`,
+              default: item.url
+            };
+            createImageItem(config, container, true);
+            
+            loadedCount++;
+            // Marquer comme terminé après la dernière image
+            if (loadedCount === hommesImages.length) {
+              isLoadingHommes = false;
+            }
+          });
+        });
+        
+        // Si aucune image, marquer comme terminé immédiatement
+        if (hommesImages.length === 0) {
+          isLoadingHommes = false;
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement du catalogue hommes:', error);
+        isLoadingHommes = false;
+      }
+    }
+    
+    // Update femmes/hommes image URL
+    function updateCatalogImageUrl(imageId, url) {
+      if (!url) return;
+      
+      // Check if it's a femmes image
+      if (imageId.startsWith('femme_')) {
+        const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+        const image = femmesImages.find(img => img.id === imageId);
+        if (image) {
+          image.url = url;
+          localStorage.setItem('femmes_images', JSON.stringify(femmesImages));
+          if (firebaseInitialized && typeof saveFemmesImagesToFirebase === 'function') {
+            saveFemmesImagesToFirebase(femmesImages);
+          }
+        }
+      }
+      // Check if it's a hommes image
+      else if (imageId.startsWith('homme_')) {
+        const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+        const image = hommesImages.find(img => img.id === imageId);
+        if (image) {
+          image.url = url;
+          localStorage.setItem('hommes_images', JSON.stringify(hommesImages));
+          if (firebaseInitialized && typeof saveHommesImagesToFirebase === 'function') {
+            saveHommesImagesToFirebase(hommesImages);
+          }
+        }
+      }
+      
+      // Update the displayed image
+      const item = document.querySelector(`[data-image-id="${imageId}"]`);
+      if (item) {
+        const img = item.querySelector('img');
+        if (img) {
+          img.src = url;
+        }
+      }
+    }
+    
+    // Delete femmes/hommes image
+    function deleteCatalogImage(imageId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cette image ?')) {
+        // Remove from DOM
+        const item = document.querySelector(`[data-image-id="${imageId}"]`);
+        if (item) {
+          item.remove();
+        }
+        
+        // Remove from localStorage
+        if (imageId.startsWith('femme_')) {
+          const femmesImages = JSON.parse(localStorage.getItem('femmes_images') || '[]');
+          const updated = femmesImages.filter(img => img.id !== imageId);
+          localStorage.setItem('femmes_images', JSON.stringify(updated));
+          if (firebaseInitialized && typeof saveFemmesImagesToFirebase === 'function') {
+            saveFemmesImagesToFirebase(updated);
+          }
+          loadFemmesCatalog();
+        } else if (imageId.startsWith('homme_')) {
+          const hommesImages = JSON.parse(localStorage.getItem('hommes_images') || '[]');
+          const updated = hommesImages.filter(img => img.id !== imageId);
+          localStorage.setItem('hommes_images', JSON.stringify(updated));
+          if (firebaseInitialized && typeof saveHommesImagesToFirebase === 'function') {
+            saveHommesImagesToFirebase(updated);
+          }
+          loadHommesCatalog();
+        }
+      }
+    }
+    
+    // Add new team member (global function)
+    window.addNewTeamMember = function() {
+      const teamContainer = document.getElementById('teamImages');
+      const existingMembers = teamContainer.querySelectorAll('.image-item').length;
+      const newId = `team_${Date.now()}`;
+      
+      const newConfig = {
+        id: newId,
+        name: `Nouvel employé ${existingMembers + 1}`,
+        default: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENouvelle%20Image%3C/text%3E%3C/svg%3E'
+      };
+      
+      // Save initial team member info
+      saveTeamMemberInfo(newId, { firstName: '', lastName: '', grade: '', phone: '' });
+      
+      createImageItem(newConfig, teamContainer, true);
+    };
+    
+    // Delete team member (global function)
+    window.deleteTeamMember = function deleteTeamMember(memberId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')) {
+        // Remove from DOM
+        const item = document.querySelector(`[data-image-id="${memberId}"]`);
+        if (item) {
+          item.remove();
+        }
+        
+        // Remove from localStorage
+        localStorage.removeItem(`image_${memberId}`);
+        const teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+        const updated = teamMembers.filter(m => m.id !== memberId);
+        localStorage.setItem('team_members', JSON.stringify(updated));
+        if (firebaseInitialized && typeof saveTeamMembersToFirebase === 'function') {
+          saveTeamMembersToFirebase(updated);
+        }
+        
+        // Mark as deleted if it's a default member
+        const deletedMembers = JSON.parse(localStorage.getItem('deleted_team_members') || '[]');
+        if (!deletedMembers.includes(memberId)) {
+          deletedMembers.push(memberId);
+          localStorage.setItem('deleted_team_members', JSON.stringify(deletedMembers));
+          if (firebaseInitialized && typeof saveDeletedTeamMembersToFirebase === 'function') {
+            saveDeletedTeamMembersToFirebase(deletedMembers);
+          }
+        }
+      }
+    };
+    
+    // Save all images
+    function saveAllImages() {
+      const message = document.getElementById('successMessage');
+      message.classList.add('show');
+      setTimeout(() => {
+        message.classList.remove('show');
+      }, 3000);
+      
+      // Reload the page to show updated images
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+    
+    // ========== PARTENAIRES ==========
+    
+    // Charger les partenaires
+    function loadPartenaires() {
+      const container = document.getElementById('partenairesList');
+      if (!container) return;
+      
+      container.innerHTML = '';
+      
+      let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      
+      if (partenaires.length === 0) {
+        partenaires = [
+          { id: 'auto_exo', name: 'Auto Exótic', image: 'img/auto_exo.webp' },
+          { id: 'ltd', name: 'LTD SandyShore', image: 'img/ltd.webp' },
+          { id: 'hen', name: 'Hen House', image: 'img/hen.png' },
+          { id: 'delight', name: 'Delight', image: 'img/delight.png' },
+          { id: 'life', name: 'Life Invader', image: 'img/life.png' }
+        ];
+        localStorage.setItem('partenaires', JSON.stringify(partenaires));
+        if (firebaseInitialized && typeof savePartenairesToFirebase === 'function') {
+          savePartenairesToFirebase(partenaires);
+        }
+      }
+      
+      partenaires.forEach(partner => {
+        const item = document.createElement('div');
+        item.className = 'image-item';
+        item.dataset.partnerId = partner.id;
+        item.innerHTML = `
+          <button class="delete-image-btn" onclick="deletePartenaire('${partner.id}')" title="Supprimer">×</button>
+          <img src="${partner.image}" alt="${partner.name}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3EImage%3C/text%3E%3C/svg%3E'">
+          <div class="image-label">${partner.name}</div>
+          <input type="text" class="input-url" placeholder="Nom du partenaire" value="${partner.name}" onchange="updatePartenaireName('${partner.id}', this.value)">
+          <input type="text" class="input-url" placeholder="URL de l'image" value="${partner.image}" onchange="updatePartenaireImage('${partner.id}', this.value)">
+          <button class="btn-small" onclick="updatePartenaire('${partner.id}')">Mettre à jour</button>
+        `;
+        container.appendChild(item);
+      });
+    }
+    
+    // Ajouter un nouveau partenaire
+    window.addNewPartenaire = function() {
+      const newId = 'partenaire_' + Date.now();
+      const newPartner = {
+        id: newId,
+        name: 'Nouveau Partenaire',
+        image: ''
+      };
+      
+      let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      partenaires.push(newPartner);
+      localStorage.setItem('partenaires', JSON.stringify(partenaires));
+      
+      if (firebaseInitialized && typeof savePartenairesToFirebase === 'function') {
+        savePartenairesToFirebase(partenaires);
+      }
+      
+      loadPartenaires();
+    };
+    
+    // Mettre à jour un partenaire
+    window.updatePartenaire = function(partnerId) {
+      const item = document.querySelector(`[data-partner-id="${partnerId}"]`);
+      if (!item) return;
+      
+      const nameInput = item.querySelector('input[placeholder="Nom du partenaire"]');
+      const imageInput = item.querySelector('input[placeholder="URL de l\'image"]');
+      
+      const name = nameInput.value.trim();
+      const image = imageInput.value.trim();
+      
+      if (!name || !image) {
+        alert('Veuillez remplir tous les champs');
+        return;
+      }
+      
+      let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      const index = partenaires.findIndex(p => p.id === partnerId);
+      
+      if (index !== -1) {
+        partenaires[index].name = name;
+        partenaires[index].image = image;
+        localStorage.setItem('partenaires', JSON.stringify(partenaires));
+        
+        if (firebaseInitialized && typeof savePartenairesToFirebase === 'function') {
+          savePartenairesToFirebase(partenaires);
+        }
+        
+        loadPartenaires();
+      }
+    };
+    
+    // Mettre à jour le nom d'un partenaire
+    window.updatePartenaireName = function(partnerId, name) {
+      let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      const index = partenaires.findIndex(p => p.id === partnerId);
+      if (index !== -1) {
+        partenaires[index].name = name;
+        localStorage.setItem('partenaires', JSON.stringify(partenaires));
+      }
+    };
+    
+    // Mettre à jour l'image d'un partenaire
+    window.updatePartenaireImage = function(partnerId, image) {
+      let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      const index = partenaires.findIndex(p => p.id === partnerId);
+      if (index !== -1) {
+        partenaires[index].image = image;
+        localStorage.setItem('partenaires', JSON.stringify(partenaires));
+      }
+    };
+    
+    // Supprimer un partenaire
+    window.deletePartenaire = function(partnerId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce partenaire ?')) {
+        let partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+        partenaires = partenaires.filter(p => p.id !== partnerId);
+        localStorage.setItem('partenaires', JSON.stringify(partenaires));
+        
+        if (firebaseInitialized && typeof savePartenairesToFirebase === 'function') {
+          savePartenairesToFirebase(partenaires);
+        }
+        
+        loadPartenaires();
+      }
+    };
+    
+    // Exporter les données des partenaires
+    window.exportPartenairesData = function() {
+      const partenaires = JSON.parse(localStorage.getItem('partenaires') || '[]');
+      const exportData = JSON.stringify(partenaires, null, 2);
+      const resultDiv = document.getElementById('partenairesExportResult');
+      const textarea = document.getElementById('partenairesExportData');
+      
+      if (resultDiv && textarea) {
+        textarea.value = exportData;
+        resultDiv.style.display = 'block';
+      }
+    };
+    
+    // Copier l'export des partenaires
+    window.copyPartenairesExport = function() {
+      const textarea = document.getElementById('partenairesExportData');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('Données copiées dans le presse-papiers !');
+      }
+    };
+    
+    // Déconnexion (optionnel - vous pouvez ajouter un bouton de déconnexion)
+    function logout() {
+      if (confirm('Êtes-vous sûr de vouloir vous déconnecter ?')) {
+        sessionStorage.removeItem('adminAuthenticated');
+        // Utiliser un chemin absolu depuis la racine
+        const rootPath = window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/');
+        window.location.href = rootPath + '/admin-login.html';
+      }
+    }
+
+    // Load team members
+    function loadTeamMembers() {
+      const teamContainer = document.getElementById('teamImages');
+      if (!teamContainer) return;
+      
+      // Clear container first to avoid duplicates
+      teamContainer.innerHTML = '';
+      
+      const teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      const deletedMembers = JSON.parse(localStorage.getItem('deleted_team_members') || '[]');
+      const defaultMembers = imageConfig.team.map(t => t.id);
+      
+      // Load default team members (excluding deleted ones)
+      imageConfig.team.forEach(config => {
+        if (!deletedMembers.includes(config.id)) {
+          createImageItem(config, teamContainer);
+        }
+      });
+      
+      // Load custom team members
+      teamMembers.forEach(member => {
+        if (!defaultMembers.includes(member.id) && member.id.startsWith('team_')) {
+          const savedImage = localStorage.getItem(`image_${member.id}`);
+          const config = {
+            id: member.id,
+            name: `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Nouvel employé',
+            default: savedImage || 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23333%22 width=%22200%22 height=%22200%22/%3E%3Ctext fill=%22%23999%22 font-family=%22sans-serif%22 font-size=%2214%22 dy=%2210.5%22 font-weight=%22bold%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22%3ENouvelle%20Image%3C/text%3E%3C/svg%3E'
+          };
+          createImageItem(config, teamContainer, true);
+        }
+      });
+    }
+
+    // Accordion toggle function
+    window.toggleAccordion = function(header) {
+      const item = header.closest('.accordion-item');
+      const isActive = item.classList.contains('active');
+      
+      // Close all other accordions
+      document.querySelectorAll('.accordion-item').forEach(acc => {
+        if (acc !== item) {
+          acc.classList.remove('active');
+        }
+      });
+      
+      // Toggle current accordion
+      item.classList.toggle('active', !isActive);
+      
+      // Load content if opening for the first time
+      if (!isActive) {
+        const section = item.dataset.section;
+        loadSectionContent(section);
+      }
+    };
+    
+    // Track which sections have been loaded
+    const loadedSections = new Set();
+    
+    // Load section content only when opened
+    function loadSectionContent(section) {
+      if (loadedSections.has(section)) {
+        return; // Already loaded
+      }
+      
+      // Éviter de charger si déjà en cours de chargement
+      if ((section === 'femmes' && isLoadingFemmes) || (section === 'hommes' && isLoadingHommes)) {
+        setTimeout(() => loadSectionContent(section), 100);
+        return;
+      }
+      
+      loadedSections.add(section);
+      
+      switch(section) {
+        case 'team':
+          loadTeamMembers();
+          break;
+        case 'gallery':
+          const galleryContainer = document.getElementById('galleryImages');
+          if (galleryContainer) {
+            imageConfig.gallery.forEach(config => {
+              createImageItem(config, galleryContainer);
+            });
+            
+            // Load custom gallery images
+            const customImages = JSON.parse(localStorage.getItem('custom_gallery_images') || '[]');
+            customImages.forEach(imageId => {
+              const saved = localStorage.getItem(`image_${imageId}`);
+              if (saved) {
+                const name = `Galerie ${galleryContainer.querySelectorAll('.image-item').length + 1}`;
+                const config = {
+                  id: imageId,
+                  name: name,
+                  default: saved
+                };
+                createImageItem(config, galleryContainer, true);
+              }
+            });
+          }
+          break;
+        case 'femmes':
+          loadFemmesCatalog();
+          break;
+        case 'partenaires':
+          loadPartenaires();
+          break;
+        case 'hommes':
+          loadHommesCatalog();
+          break;
+        case 'hero':
+          const heroContainer = document.getElementById('heroImages');
+          if (heroContainer) {
+            if (Array.isArray(imageConfig.hero)) {
+              imageConfig.hero.forEach(config => {
+                createImageItem(config, heroContainer);
+              });
+            } else {
+              createImageItem(imageConfig.hero, heroContainer);
+            }
+          }
+          break;
+        case 'map':
+          const mapContainer = document.getElementById('mapImage');
+          if (mapContainer) {
+            createImageItem(imageConfig.map, mapContainer);
+          }
+          break;
+      }
+    }
+
+    // Initialize admin page
+    function initAdmin() {
+      // Don't load anything by default - wait for user to open accordions
+      // This improves initial page load performance
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', initAdmin);
+
+    // Prevent default drag behavior on page
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+    
+    // Navigation Toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (navToggle) {
+      navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        navToggle.classList.toggle('active');
+      });
+    }
+  </script>
+  <script src="assets/burger-menu.js" defer></script>
+</body>
+</html>
+

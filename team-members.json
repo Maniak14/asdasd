@@ -1,0 +1,46 @@
+{
+  "team_members": [
+    {
+      "id": "team_1764097028261",
+      "lastName": "Alvarez",
+      "phone": "682-6030 ",
+      "grade": "Patron",
+      "firstName": "Julio"
+    },
+    {
+      "firstName": "Soren",
+      "phone": "575-5535",
+      "grade": "Co-Patron",
+      "lastName": "Wanks",
+      "id": "team_1764097733149"
+    },
+    {
+      "firstName": "Sun",
+      "grade": "DRH",
+      "lastName": "Price",
+      "phone": "740-3572",
+      "id": "team_1764097733453"
+    },
+    {
+      "id": "team_1764097733616",
+      "firstName": "Inaya",
+      "lastName": "Kinslow",
+      "phone": "344-6279",
+      "grade": "DRH"
+    },
+    {
+      "phone": "212-0212",
+      "lastName": "Hernandez",
+      "firstName": "Andres",
+      "grade": "Responsable Coiffeur",
+      "id": "team_1764097768491"
+    },
+    {
+      "lastName": "Yoshikage",
+      "firstName": "Yoruhime",
+      "phone": "672-0651",
+      "id": "team_1764097769247",
+      "grade": "Responsable Tatoueur"
+    }
+  ]
+}

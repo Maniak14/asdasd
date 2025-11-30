@@ -1,0 +1,20 @@
+# Activer le moteur de réécriture
+RewriteEngine On
+
+# Rediriger les URLs avec .html vers les URLs sans .html
+RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+RewriteRule ^ /%1 [NC,L,R=301]
+
+# Réécrire les URLs sans .html vers les fichiers .html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.html -f
+RewriteRule ^(.*)$ $1.html [NC,L]
+
+# Rediriger la racine vers accueil.html
+DirectoryIndex accueil.html
+
+# Empêcher l'accès direct aux fichiers .html (optionnel)
+# RewriteCond %{THE_REQUEST} \s/+(.+)\.html[\s?] [NC]
+# RewriteRule ^ /%1 [R=301,L]
+

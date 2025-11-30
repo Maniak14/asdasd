@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L'Esthétique Vespucci - Tarifs</title>
+  <link rel="icon" type="image/png" href="img/V.png">
+  <link rel="stylesheet" href="assets/styles-logo.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="assets/url-cleaner.js"></script>
+  <script>
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+  </script>
+  <style>
+    /* Mobile Navigation Styles */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(10, 10, 15, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .navbar.active {
+      transform: translateX(0);
+    }
+
+    .mobile-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2rem;
+    }
+
+    .nav-links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      padding: 0.75rem 0;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--primary-light);
+    }
+
+    .mobile-close-btn {
+      display: none;
+    }
+
+    .mobile-close-btn span {
+      position: absolute;
+      width: 25px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .mobile-close-btn span:first-child {
+      transform: rotate(45deg);
+    }
+
+    .mobile-close-btn span:last-child {
+      transform: rotate(-45deg);
+    }
+
+    .burger {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      z-index: 10000;
+      background: none;
+      border-radius: 0;
+      padding: 8px;
+      border: none;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .burger span {
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .burger.active span:first-child {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .burger.active span:last-child {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    @media (max-width: 768px) {
+      .burger {
+        display: flex;
+      }
+
+      .nav-toggle {
+        display: none;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+
+    /* Services supplémentaires grid */
+    .supplementary-services-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 768px) {
+      .supplementary-services-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="noise-overlay"></div>
+  </div>
+
+  <!-- Geometric Shapes -->
+  <div class="geometric-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-container">
+      <a href="accueil.html" class="logo">
+        <img src="img/V.png" alt="Logo Vespucci" class="logo-image">
+        <div class="logo-text-wrapper">
+        <span class="logo-text">VESPUCCI</span>
+        <span class="logo-subtitle">ESTHÉTIQUE</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="accueil.html" class="nav-item">Accueil</a>
+        <a href="tarifs.html" class="nav-item active">Tarifs</a>
+        <a href="femmes.html" class="nav-item">Femmes</a>
+        <a href="hommes.html" class="nav-item">Hommes</a>
+        <a href="partenaires.html" class="nav-item">Partenaires</a>
+      </div>
+      <button class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  <nav class="navbar">
+    <div class="mobile-title"></div>
+    <div class="nav-links-container">
+      <a href="accueil.html" class="nav-link">Accueil</a>
+      <a href="tarifs.html" class="nav-link active">Tarifs</a>
+      <a href="femmes.html" class="nav-link">Femmes</a>
+      <a href="hommes.html" class="nav-link">Hommes</a>
+      <a href="partenaires.html" class="nav-link">Partenaires</a>
+    </div>
+    <div class="mobile-close-btn">
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <div class="burger" id="burger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <!-- Pricing Section -->
+  <section class="pricing-section" style="padding-top: 8rem; padding-bottom: 4rem;">
+    <div class="section-header">
+      <span class="section-tag">Tarifs</span>
+      <h2 class="section-title">Nos tarifs</h2>
+    </div>
+    <p style="text-align: center; color: var(--text-secondary); max-width: 600px; margin: 0 auto 4rem; font-size: 1.1rem; line-height: 1.8;">
+      Des prix transparents pour des services de qualité. Tous nos tarifs incluent une consultation personnalisée.
+    </p>
+
+    <div class="services-grid" style="max-width: 1200px; margin: 0 auto;">
+      <div class="service-card" data-tilt>
+        <div class="service-number">01</div>
+        <div class="service-content">
+          <h3>Homme</h3>
+          <ul class="pricing-list">
+            <li>Coupe : 200$</li>
+            <li>Couleur : 100$</li>
+            <li>Dégradé : 100$</li>
+            <li>Barbe : 100$</li>
+          </ul>
+          <a href="#" class="service-link" id="openBookingModal">
+            <span>Réserver</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
+      </div>
+
+      <div class="service-card" data-tilt>
+        <div class="service-number">02</div>
+        <div class="service-content">
+          <h3>Femme</h3>
+          <ul class="pricing-list">
+            <li>Coupe : 200$</li>
+            <li>Couleur : 100$</li>
+            <li>Dégradé : 100$</li>
+          </ul>
+          <a href="#" class="service-link" id="openBookingModal2">
+            <span>Réserver</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
+      </div>
+
+      <div class="service-card" data-tilt>
+        <div class="service-number">03</div>
+        <div class="service-content">
+          <h3>Services Bien-être</h3>
+          <ul class="pricing-list">
+            <li>Spa détente 30min : 300$</li>
+            <li>Massage 15min : 300$</li>
+          </ul>
+          <a href="#" class="service-link" id="openBookingModal3">
+            <span>Réserver</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
+      </div>
+    </div>
+
+    <div style="max-width: 1200px; margin: 6rem auto 0; padding: 0 2rem;">
+      <div class="section-header">
+        <span class="section-tag">Services</span>
+        <h2 class="section-title">Services supplémentaires</h2>
+      </div>
+      <div class="supplementary-services-grid">
+        <div class="service-card supplementary">
+          <div class="service-content">
+            <h3>Rouge à lèvres</h3>
+            <div class="pricing-price-small">50$</div>
+          </div>
+        </div>
+        <div class="service-card supplementary">
+          <div class="service-content">
+            <h3>Shampoing</h3>
+            <div class="pricing-price-small">50$</div>
+          </div>
+        </div>
+        <div class="service-card supplementary">
+          <div class="service-content">
+            <h3>Lotion pour les mains</h3>
+            <div class="pricing-price-small">50$</div>
+          </div>
+        </div>
+        <div class="service-card supplementary">
+          <div class="service-content">
+            <h3>Lotion pour les cheveux</h3>
+            <div class="pricing-price-small">50$</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="accueil.html" class="footer-logo">
+          <img src="img/V.png" alt="Logo Vespucci" class="footer-logo-image">
+          <div class="footer-logo-text-wrapper">
+            <span class="footer-logo-text">VESPUCCI</span>
+            <span class="footer-logo-subtitle">ESTHÉTIQUE</span>
+          </div>
+        </a>
+        <p>L'Esthétique Vespucci © 2025</p>
+      </div>
+      <div class="footer-links">
+        <a href="accueil.html">Accueil</a>
+        <a href="femmes.html">Femmes</a>
+        <a href="tarifs.html">Tarifs</a>
+        <a href="hommes.html">Hommes</a>
+        <a href="partenaires.html">Partenaires</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Fixed CTA Buttons -->
+  <button class="scroll-to-top" id="scrollToTop" aria-label="Retour en haut">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
+  <a href="#" class="fixed-cta" id="openFixedBookingModal">
+    <span class="cta-text">Réserver</span>
+  </a>
+
+  <!-- Modals -->
+  <div id="bookingModal" class="modal">
+    <div class="modal-content booking-modal-content">
+      <button class="modal-close" id="closeBookingModal">&times;</button>
+      <div class="booking-header">
+        <h2>Prendre rendez-vous</h2>
+        <p class="booking-subtitle">Contactez-nous pour réserver votre créneau</p>
+      </div>
+      
+      <div class="booking-section">
+        <div class="booking-section-header">
+          <span class="booking-icon">💬</span>
+          <h3>Discord</h3>
+        </div>
+        <a href="https://discord.gg/qgWzv3uZ" target="_blank" class="discord-button">
+          <span>Rejoindre notre Discord</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+        </a>
+      </div>
+      
+      <div class="booking-section">
+        <div class="booking-section-header">
+          <span class="booking-icon">📞</span>
+          <h3>Contacter un employé</h3>
+        </div>
+        <div id="teamContacts" class="team-contacts-list">
+          <!-- Les contacts seront chargés dynamiquement -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mobile Navigation Toggle - S'exécute immédiatement
+    (function() {
+      const burger = document.getElementById('burger');
+      const navbar = document.querySelector('.navbar');
+      const mobileCloseBtn = document.querySelector('.mobile-close-btn');
+      
+      if (!burger || !navbar) return;
+      
+      // Fonction pour ouvrir/fermer le menu
+      function toggleMenu() {
+        burger.classList.toggle('active');
+        navbar.classList.toggle('active');
+        document.body.style.overflow = navbar.classList.contains('active') ? 'hidden' : '';
+      }
+      
+      // Event listener pour le burger
+      burger.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMenu();
+      });
+      
+      // Event listener pour le bouton de fermeture
+      if (mobileCloseBtn) {
+        mobileCloseBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+      
+      // Fermer le menu quand on clique sur un lien
+      const navLinks = document.querySelectorAll('.nav-link');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      });
+      
+      // Fermer le menu quand on clique en dehors
+      document.addEventListener('click', function(e) {
+        if (navbar.classList.contains('active') && 
+            !navbar.contains(e.target) && 
+            !burger.contains(e.target)) {
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    })();
+  </script>
+  <script>
+    // Navigation Toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (navToggle) {
+      navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        navToggle.classList.toggle('active');
+      });
+    }
+
+    // Modal Handling
+    const openBookingModal = document.getElementById('openBookingModal');
+    const openBookingModal2 = document.getElementById('openBookingModal2');
+    const openBookingModal3 = document.getElementById('openBookingModal3');
+    const openFixedBookingModal = document.getElementById('openFixedBookingModal');
+    const bookingModal = document.getElementById('bookingModal');
+    const closeBookingModal = document.getElementById('closeBookingModal');
+
+    // Charger les contacts des employés dans le modal
+    async function loadTeamContacts() {
+      const teamContactsDiv = document.getElementById('teamContacts');
+      if (!teamContactsDiv) return;
+      
+      try {
+        const response = await fetch('team-members.json');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.team_members && Array.isArray(data.team_members)) {
+            teamContactsDiv.innerHTML = '';
+            data.team_members.forEach(member => {
+              if (member.phone) {
+                const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
+                const phone = member.phone.trim();
+                const contactCard = document.createElement('div');
+                contactCard.className = 'contact-card';
+                contactCard.innerHTML = `
+                  <div class="contact-info">
+                    <div class="contact-name">${fullName || 'Employé'}</div>
+                    <div class="contact-grade">${member.grade || ''}</div>
+                  </div>
+                  <a href="#" class="contact-phone-button" data-phone="${phone}">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 0.5rem;">
+                      <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                    </svg>
+                    ${phone}
+                  </a>
+                `;
+                teamContactsDiv.appendChild(contactCard);
+                
+                // Ajouter le gestionnaire d'événement pour copier le numéro
+                const phoneButton = contactCard.querySelector('.contact-phone-button');
+                phoneButton.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  const phoneNumber = this.getAttribute('data-phone');
+                  if (phoneNumber) {
+                    navigator.clipboard.writeText(phoneNumber).then(() => {
+                      const originalText = this.innerHTML;
+                      this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 0.5rem;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Copié !';
+                      this.style.background = 'var(--primary)';
+                      setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.style.background = '';
+                      }, 2000);
+                    }).catch(() => {
+                      alert('Numéro: ' + phoneNumber);
+                    });
+                  }
+                });
+              }
+            });
+          }
+        }
+      } catch (error) {
+      }
+    }
+    
+    function openModal(modal) {
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Charger les contacts quand le modal s'ouvre
+        if (modal.id === 'bookingModal') {
+          loadTeamContacts();
+        }
+      }
+    }
+
+    function closeModal(modal) {
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    if (openBookingModal) openBookingModal.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (openBookingModal2) openBookingModal2.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (openBookingModal3) openBookingModal3.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (openFixedBookingModal) openFixedBookingModal.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (closeBookingModal) closeBookingModal.addEventListener('click', () => closeModal(bookingModal));
+
+    if (bookingModal) {
+      bookingModal.addEventListener('click', (e) => {
+        if (e.target === bookingModal) closeModal(bookingModal);
+      });
+    }
+
+    // Hide fixed CTA button near footer
+    function handleFixedCTA() {
+      const fixedCTA = document.querySelector('.fixed-cta');
+      const scrollToTopBtn = document.querySelector('.scroll-to-top');
+      const footer = document.querySelector('.main-footer');
+      if (fixedCTA && footer) {
+        const footerTop = footer.offsetTop;
+        const windowBottom = window.pageYOffset + window.innerHeight;
+        const distanceToFooter = footerTop - windowBottom;
+        
+        if (distanceToFooter < 150) {
+          fixedCTA.style.opacity = '0';
+          fixedCTA.style.pointerEvents = 'none';
+          if (scrollToTopBtn) {
+            scrollToTopBtn.style.opacity = '0';
+            scrollToTopBtn.style.pointerEvents = 'none';
+          }
+        } else {
+          fixedCTA.style.opacity = '1';
+          fixedCTA.style.pointerEvents = 'auto';
+          if (scrollToTopBtn && scrollToTopBtn.classList.contains('visible')) {
+            scrollToTopBtn.style.opacity = '1';
+            scrollToTopBtn.style.pointerEvents = 'auto';
+          }
+        }
+      }
+    }
+    
+    window.addEventListener('scroll', handleFixedCTA, { passive: true });
+    handleFixedCTA();
+
+    // Scroll to Top Button
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    if (scrollToTopBtn) {
+      function handleScrollToTop() {
+        const footer = document.querySelector('.main-footer');
+        let nearFooter = false;
+        
+        // Vérifier si on est près du footer
+        if (footer) {
+          const footerTop = footer.offsetTop;
+          const windowBottom = window.pageYOffset + window.innerHeight;
+          const distanceToFooter = footerTop - windowBottom;
+          nearFooter = distanceToFooter < 150;
+        }
+        
+        // Cacher le bouton si on est en haut de la page OU près du footer
+        if (window.pageYOffset > 300 && !nearFooter) {
+          scrollToTopBtn.classList.add('visible');
+          // Retirer les styles inline pour permettre au CSS de fonctionner
+          scrollToTopBtn.style.opacity = '';
+          scrollToTopBtn.style.pointerEvents = '';
+        } else {
+          scrollToTopBtn.classList.remove('visible');
+          // S'assurer que le bouton est bien caché
+          scrollToTopBtn.style.opacity = '0';
+          scrollToTopBtn.style.pointerEvents = 'none';
+        }
+      }
+
+      scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+
+      window.addEventListener('scroll', handleScrollToTop, { passive: true });
+      // Vérifier l'état initial au chargement
+      handleScrollToTop();
+    }
+
+    // 3D Tilt Effect
+    document.querySelectorAll('[data-tilt]').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 25;
+        const rotateY = (centerX - x) / 25;
+        
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+      });
+    });
+  </script>
+
+  <style>
+    .booking-modal-content {
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+    }
+
+    .booking-modal-content::-webkit-scrollbar {
+      display: none;
+      width: 0;
+    }
+
+    .booking-modal-content {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .booking-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .booking-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .booking-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .booking-section {
+      margin-bottom: 2rem;
+    }
+
+    .booking-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .booking-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .booking-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .booking-section-header h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .discord-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+    }
+
+    .discord-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(88, 101, 242, 0.4);
+    }
+
+    .discord-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .team-contacts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .contact-card:hover {
+      border-color: var(--primary);
+      transform: translateX(5px);
+      box-shadow: 0 4px 15px rgba(32, 178, 170, 0.15);
+    }
+
+    .contact-info {
+      flex: 1;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .contact-grade {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .contact-phone-button {
+      display: flex;
+      align-items: center;
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .contact-phone-button:hover {
+      background: var(--primary-light);
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(32, 178, 170, 0.3);
+    }
+
+    .contact-phone-button svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .booking-modal-content {
+        padding: 2rem 1.5rem;
+      }
+
+      .booking-header h2 {
+        font-size: 1.75rem;
+      }
+
+      .contact-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .contact-phone-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</body>
+</html>

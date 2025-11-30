@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>L'Esthétique Vespucci - Accueil</title>
+  <link rel="icon" type="image/png" href="img/V.png">
+  <link rel="stylesheet" href="assets/styles-logo.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-db.js"></script>
+  <script src="assets/url-cleaner.js"></script>
+  <script>
+    // Force scroll to top immediately on page load
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+    
+    // Initialize Firebase and load data
+    let firebaseInitialized = false;
+    
+    // Load images from localStorage (admin changes)
+    // Les images sont maintenant chargées uniquement depuis Firebase/localStorage
+    function loadSavedImages() {
+      // Cette fonction est conservée pour compatibilité mais ne force plus d'images par défaut
+      
+      // Fonction pour appliquer les positions d'images
+      function applyImagePositions() {
+        // Positions pour les images de l'équipe
+        document.querySelectorAll('.team-image-wrapper img').forEach(img => {
+          const imageId = img.getAttribute('data-image-id');
+          if (imageId) {
+            const position = localStorage.getItem(`image_position_${imageId}`);
+            if (position) {
+              img.style.objectPosition = position;
+            }
+          }
+        });
+        
+        // Positions pour les images hero
+        document.querySelectorAll('.hero-image').forEach((img, index) => {
+          const position = localStorage.getItem(`image_position_hero${index + 1}`);
+          if (position) {
+            img.style.objectPosition = position;
+          }
+        });
+        
+        // Positions pour les images de galerie
+        document.querySelectorAll('.gallery-item img').forEach(img => {
+          const imageId = img.getAttribute('data-image-id');
+          if (imageId) {
+            const position = localStorage.getItem(`image_position_${imageId}`);
+            if (position) {
+              img.style.objectPosition = position;
+            }
+          } else {
+            // Pour les images sans data-image-id, essayer avec l'index (gallery1-6)
+            const galleryItems = Array.from(document.querySelectorAll('.gallery-item img'));
+            const index = galleryItems.indexOf(img);
+            if (index < 6) {
+              const position = localStorage.getItem(`image_position_gallery${index + 1}`);
+              if (position) {
+                img.style.objectPosition = position;
+              }
+            }
+          }
+        });
+      }
+      
+      // Initialize Firebase and load team members
+      document.addEventListener('DOMContentLoaded', async () => {
+        // Charger DIRECTEMENT depuis localStorage/Firebase (priorité à la DB)
+        await loadTeamMembersFromJSON();
+        await updateGalleryImagesFromJSON();
+        
+        // Mettre à jour les images hero et map depuis le cache (uniquement depuis Firebase/localStorage)
+        const heroImgs = document.querySelectorAll('.hero-image');
+        heroImgs.forEach((img, index) => {
+          const saved = localStorage.getItem(`image_hero${index + 1}`);
+          // Charger UNIQUEMENT depuis localStorage/Firebase (pas de valeurs par défaut)
+          if (saved) {
+            img.src = saved;
+          } else {
+            // Si pas d'image sauvegardée, ne pas modifier (garder l'image par défaut du HTML)
+          }
+          
+          // Appliquer la position immédiatement après le chargement de l'image
+          const position = localStorage.getItem(`image_position_hero${index + 1}`);
+          if (position) {
+            img.style.objectPosition = position;
+          }
+        });
+        
+        const mapImg = document.querySelector('.location-map img');
+        if (mapImg) {
+          const saved = localStorage.getItem('image_map');
+          if (saved) mapImg.src = saved;
+        }
+        
+        // Appliquer les positions depuis le cache
+        applyImagePositions();
+        
+        // Initialiser Firebase en arrière-plan pour synchronisation
+        if (initFirebaseDB && typeof initFirebaseDB === 'function') {
+          firebaseInitialized = initFirebaseDB();
+          if (firebaseInitialized) {
+            // Charger toutes les données depuis Firebase en arrière-plan
+            if (typeof loadAllDataFromFirebase === 'function') {
+              loadAllDataFromFirebase().then(() => {
+                // Mettre à jour si Firebase a des données plus récentes
+                loadTeamMembersFromJSON();
+                updateGalleryImagesFromJSON();
+                applyImagePositions();
+                
+                // Mettre à jour hero images (uniquement depuis Firebase/localStorage)
+                heroImgs.forEach((img, index) => {
+                  const saved = localStorage.getItem(`image_hero${index + 1}`);
+                  if (saved) {
+                    img.src = saved;
+                  }
+                  
+                  // Appliquer la position après mise à jour de l'image
+                  const position = localStorage.getItem(`image_position_hero${index + 1}`);
+                  if (position) {
+                    img.style.objectPosition = position;
+                  }
+                });
+                
+                // Mettre à jour map image
+                if (mapImg) {
+                  const saved = localStorage.getItem('image_map');
+                  if (saved) mapImg.src = saved;
+                }
+              });
+            }
+            
+            // Écouter les changements d'images en temps réel
+            if (typeof watchImages === 'function') {
+              watchImages(() => {
+                loadTeamMembersFromJSON();
+                updateGalleryImagesFromJSON();
+                
+                // Mettre à jour hero images (uniquement depuis Firebase/localStorage)
+                const heroImgs = document.querySelectorAll('.hero-image');
+                heroImgs.forEach((img, index) => {
+                  const saved = localStorage.getItem(`image_hero${index + 1}`);
+                  if (saved) {
+                    img.src = saved;
+                  }
+                  
+                  // Appliquer la position après mise à jour de l'image
+                  const position = localStorage.getItem(`image_position_hero${index + 1}`);
+                  if (position) {
+                    img.style.objectPosition = position;
+                  }
+                });
+                
+                // Mettre à jour map image
+                if (mapImg) {
+                  const saved = localStorage.getItem('image_map');
+                  if (saved) mapImg.src = saved;
+                }
+                
+                // Appliquer les positions de galerie après mise à jour
+                applyImagePositions();
+              });
+            }
+            
+            // Écouter les changements de positions en temps réel
+            if (typeof watchPositions === 'function') {
+              watchPositions(() => {
+                applyImagePositions();
+                
+                // Forcer la mise à jour des positions hero explicitement
+                const heroImgs = document.querySelectorAll('.hero-image');
+                heroImgs.forEach((img, index) => {
+                  const position = localStorage.getItem(`image_position_hero${index + 1}`);
+                  if (position) {
+                    img.style.objectPosition = position;
+                  }
+                });
+                
+                // Forcer la mise à jour des positions galerie explicitement
+                document.querySelectorAll('.gallery-item img').forEach((img) => {
+                  const imageId = img.getAttribute('data-image-id');
+                  if (imageId) {
+                    const position = localStorage.getItem(`image_position_${imageId}`);
+                    if (position) {
+                      img.style.objectPosition = position;
+                    }
+                  }
+                });
+              });
+            }
+            
+            // Écouter les changements de membres de l'équipe en temps réel
+            if (typeof watchTeamMembers === 'function') {
+              watchTeamMembers(() => {
+                loadTeamMembersFromJSON();
+                loadTeamContacts(); // Mettre à jour aussi les contacts dans le modal
+                applyImagePositions();
+              });
+            }
+          }
+        }
+      });
+    }
+    
+    // Charger DIRECTEMENT depuis Firebase/localStorage (priorité à la DB)
+    async function updateGalleryImagesFromJSON() {
+      const galleryTrack = document.querySelector('.gallery-track');
+      if (!galleryTrack) return;
+      
+      const allGalleryImages = [];
+      
+      // Charger D'ABORD depuis localStorage/Firebase (priorité à la base de données)
+      // Charger les images personnalisées depuis localStorage
+      let customImages = JSON.parse(localStorage.getItem('custom_gallery_images') || '[]');
+      
+      // Si pas de données dans localStorage, essayer le JSON statique en fallback
+      if (customImages.length === 0) {
+        try {
+          const galleryResponse = await fetch('gallery-images.json');
+          if (galleryResponse.ok) {
+            const galleryData = await galleryResponse.json();
+            if (galleryData.gallery && Array.isArray(galleryData.gallery)) {
+              customImages = galleryData.gallery;
+              // Sauvegarder dans localStorage pour la prochaine fois
+              localStorage.setItem('custom_gallery_images', JSON.stringify(customImages));
+            }
+          }
+        } catch (error) {
+        }
+      }
+      
+      // Charger les images gallery1-6 depuis localStorage (priorité à la DB)
+      for (let i = 1; i <= 6; i++) {
+        const saved = localStorage.getItem(`image_gallery${i}`);
+        if (saved) {
+          allGalleryImages.push(saved);
+        }
+      }
+      
+      // Ajouter les images personnalisées
+      customImages.forEach(image => {
+        // Si c'est un objet avec url, utiliser directement
+        if (typeof image === 'object' && image.url) {
+          allGalleryImages.push(image.url);
+        } 
+        // Sinon, c'est un ID, chercher dans localStorage
+        else if (typeof image === 'string') {
+          const saved = localStorage.getItem(`image_${image}`);
+          if (saved) {
+            allGalleryImages.push(saved);
+          }
+        }
+      });
+      
+      // Utiliser requestAnimationFrame pour un rendu fluide
+      requestAnimationFrame(() => {
+        // Utiliser DocumentFragment pour optimiser le DOM
+        const fragment = document.createDocumentFragment();
+        
+        // Create all gallery items
+        allGalleryImages.forEach((imageUrl, index) => {
+          const item = document.createElement('div');
+          item.className = 'gallery-item';
+          
+          // Déterminer l'ID de l'image pour la position
+          let imageId = null;
+          if (index < 6) {
+            // Images gallery1-6
+            imageId = `gallery${index + 1}`;
+          } else {
+            // Images personnalisées - essayer de trouver l'ID depuis customImages
+            const customIndex = index - 6;
+            if (customImages[customIndex]) {
+              if (typeof customImages[customIndex] === 'string') {
+                imageId = customImages[customIndex];
+              } else if (customImages[customIndex].id) {
+                imageId = customImages[customIndex].id;
+              }
+            }
+          }
+          
+          // Récupérer la position depuis localStorage
+          const position = imageId ? localStorage.getItem(`image_position_${imageId}`) : null;
+          const positionStyle = position ? `style="object-position: ${position};"` : '';
+          
+          item.innerHTML = `
+            <img src="${imageUrl}" alt="Réalisation ${index + 1}" loading="lazy" ${imageId ? `data-image-id="${imageId}"` : ''} ${positionStyle}>
+            <div class="gallery-overlay">
+              <span>Voir plus</span>
+            </div>
+          `;
+          fragment.appendChild(item);
+        });
+        
+        // Clear and rebuild gallery track
+        galleryTrack.innerHTML = '';
+        galleryTrack.appendChild(fragment);
+        
+        // Duplicate all items for seamless infinite scroll
+        const itemsToDuplicate = galleryTrack.querySelectorAll('.gallery-item');
+        itemsToDuplicate.forEach(item => {
+          const clone = item.cloneNode(true);
+          galleryTrack.appendChild(clone);
+        });
+        
+        // Re-attach lightbox events et appliquer les positions
+        requestAnimationFrame(() => {
+          attachGalleryLightboxEvents();
+          // Appliquer les positions après le rendu
+          applyImagePositions();
+        });
+      });
+    }
+    
+    // Attach lightbox events to gallery items
+    function attachGalleryLightboxEvents() {
+      const galleryItems = document.querySelectorAll('.gallery-item');
+      galleryItems.forEach(item => {
+        // Remove existing listeners by cloning
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        // Add click event
+        newItem.addEventListener('click', () => {
+          const img = newItem.querySelector('img');
+          if (img) {
+            const lightbox = document.createElement('div');
+            lightbox.className = 'lightbox';
+            lightbox.innerHTML = `
+              <div class="lightbox-content">
+                <img src="${img.src}" alt="${img.alt}">
+                <button class="lightbox-close">&times;</button>
+              </div>
+            `;
+            document.body.appendChild(lightbox);
+            setTimeout(() => lightbox.classList.add('active'), 10);
+            
+            // Function to close lightbox
+            const closeLightbox = () => {
+              lightbox.classList.remove('active');
+              setTimeout(() => lightbox.remove(), 300);
+            };
+            
+            // Close on button click
+            lightbox.querySelector('.lightbox-close').addEventListener('click', closeLightbox);
+            
+            // Close on click outside (on background)
+            lightbox.addEventListener('click', (e) => {
+              if (e.target === lightbox) {
+                closeLightbox();
+              }
+            });
+            
+            // Close on Escape key
+            document.addEventListener('keydown', function escapeHandler(e) {
+              if (e.key === 'Escape') {
+                closeLightbox();
+                document.removeEventListener('keydown', escapeHandler);
+              }
+            });
+          }
+        });
+      });
+    }
+    
+    loadSavedImages();
+    
+    // Charger DIRECTEMENT depuis Firebase/localStorage (priorité à la DB)
+    async function loadTeamMembersFromJSON() {
+      const teamGrid = document.getElementById('teamGrid');
+      if (!teamGrid) return;
+      
+      // Charger D'ABORD depuis localStorage/Firebase (priorité à la base de données)
+      let teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      
+      // Si pas de données dans localStorage, essayer le JSON statique en fallback
+      if (teamMembers.length === 0) {
+        try {
+          const teamResponse = await fetch('team-members.json');
+          if (teamResponse.ok) {
+            const teamData = await teamResponse.json();
+            if (teamData.team_members && Array.isArray(teamData.team_members)) {
+              teamMembers = teamData.team_members;
+              // Sauvegarder dans localStorage pour la prochaine fois
+              localStorage.setItem('team_members', JSON.stringify(teamMembers));
+            }
+          }
+        } catch (error) {
+        }
+      }
+      // Get deleted members
+      const deletedMembers = JSON.parse(localStorage.getItem('deleted_team_members') || '[]');
+      
+      // Filtrer les membres supprimés
+      const allMembers = teamMembers.filter(m => !deletedMembers.includes(m.id));
+      
+      teamGrid.innerHTML = '';
+      allMembers.forEach(member => {
+        // Utiliser imageId si défini, sinon utiliser l'id du membre
+        const imageId = member.imageId || member.id;
+        const savedImage = localStorage.getItem(`image_${imageId}`);
+        
+        // Charger UNIQUEMENT depuis localStorage/Firebase (pas de valeurs par défaut hardcodées)
+        if (!savedImage) {
+          // Si pas d'image sauvegardée, ne pas afficher ce membre
+          return;
+        }
+        
+        const imageUrl = savedImage;
+        const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Nouvel employé';
+        
+        const card = document.createElement('div');
+        card.className = 'team-card';
+        
+        // Get saved image position depuis localStorage/Firebase uniquement
+        const savedPosition = localStorage.getItem(`image_position_${imageId}`);
+        const imagePosition = savedPosition || 'center center';
+        
+        card.innerHTML = `
+          <div class="team-image-wrapper">
+            <img src="${imageUrl}" alt="${fullName}" data-image-id="${imageId}" style="object-position: ${imagePosition};">
+            <div class="team-overlay">
+              <div class="team-social">
+                <a>${member.phone || ''}</a>
+              </div>
+            </div>
+          </div>
+          <div class="team-info">
+            <h3>${fullName}</h3>
+            <p>${member.grade || ''}</p>
+          </div>
+        `;
+        teamGrid.appendChild(card);
+      });
+    }
+  </script>
+  <style>
+    /* Mobile Navigation Styles */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: rgba(10, 10, 15, 0.98);
+      backdrop-filter: blur(20px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      padding: 2rem;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .navbar.active {
+      transform: translateX(0);
+    }
+
+    .mobile-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2rem;
+    }
+
+    .nav-links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      flex: 1;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      padding: 0.75rem 0;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--primary-light);
+    }
+
+    .mobile-close-btn {
+      display: none;
+    }
+
+    .mobile-close-btn span {
+      position: absolute;
+      width: 25px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .mobile-close-btn span:first-child {
+      transform: rotate(45deg);
+    }
+
+    .mobile-close-btn span:last-child {
+      transform: rotate(-45deg);
+    }
+
+    .burger {
+      position: fixed;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 40px;
+      height: 40px;
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      z-index: 10000;
+      background: none;
+      border-radius: 0;
+      padding: 8px;
+      border: none;
+      pointer-events: auto;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .burger span {
+      width: 24px;
+      height: 2px;
+      background: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+
+    .burger.active span:first-child {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+    }
+
+    .burger.active span:last-child {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+
+    @media (max-width: 768px) {
+      .burger {
+        display: flex;
+      }
+
+      .nav-toggle {
+        display: none;
+      }
+
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="noise-overlay"></div>
+  </div>
+
+  <!-- Geometric Shapes -->
+  <div class="geometric-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="main-nav">
+    <div class="nav-container">
+      <a href="accueil.html" class="logo">
+        <img src="img/V.png" alt="Logo Vespucci" class="logo-image">
+        <div class="logo-text-wrapper">
+        <span class="logo-text">VESPUCCI</span>
+        <span class="logo-subtitle">ESTHÉTIQUE</span>
+        </div>
+      </a>
+      <div class="nav-links">
+        <a href="accueil.html" class="nav-item active">Accueil</a>
+        <a href="tarifs.html" class="nav-item">Tarifs</a>
+        <a href="femmes.html" class="nav-item">Femmes</a>
+        <a href="hommes.html" class="nav-item">Hommes</a>
+        <a href="partenaires.html" class="nav-item">Partenaires</a>
+      </div>
+      <button class="nav-toggle" id="navToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Navigation -->
+  <nav class="navbar">
+    <div class="mobile-title"></div>
+    <div class="nav-links-container">
+      <a href="accueil.html" class="nav-link active">Accueil</a>
+      <a href="tarifs.html" class="nav-link">Tarifs</a>
+      <a href="femmes.html" class="nav-link">Femmes</a>
+      <a href="hommes.html" class="nav-link">Hommes</a>
+      <a href="partenaires.html" class="nav-link">Partenaires</a>
+    </div>
+    <div class="mobile-close-btn">
+      <span></span>
+      <span></span>
+    </div>
+  </nav>
+
+  <div class="burger" id="burger">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span>Excellence depuis 2023</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="title-line">L'ART DE</span>
+        <span class="title-line highlight">VOTRE BEAUTÉ</span>
+        <span class="title-line">RÉVÉLÉ</span>
+      </h1>
+      <p class="hero-description">
+        Un salon où l'expertise rencontre l'élégance. 
+        Chaque coupe est une œuvre d'art, chaque client une priorité.
+      </p>
+      <div class="hero-cta">
+        <a href="#" class="btn btn-primary" id="openBookingModal">
+          <span>Réserver</span>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M7.5 15L12.5 10L7.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <a href="#services" class="btn btn-secondary">
+          <span>Découvrir</span>
+        </a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-visual-container">
+        <div class="hero-image-wrapper hero-image-wrapper-left">
+          <div class="image-glow"></div>
+          <img src="img/2.png" alt="L'Esthétique Vespucci" class="hero-image">
+          <div class="hero-status-overlay">
+            <span class="hero-status-text">Patron</span>
+        </div>
+        </div>
+        <div class="hero-image-wrapper hero-image-wrapper-right">
+          <div class="image-glow"></div>
+          <img src="img/1.png" alt="L'Esthétique Vespucci" class="hero-image">
+          <div class="hero-status-overlay">
+            <span class="hero-status-text">Co-Patron</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery Carousel -->
+  <section class="gallery-section">
+    <div class="section-header">
+      <span class="section-tag">Galerie</span>
+      <h2 class="section-title">Nos réalisations</h2>
+    </div>
+    <div class="gallery-container">
+      <div class="gallery-track">
+        <div class="gallery-item">
+          <img src="img/carousel/1.png" alt="Réalisation 1">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/2.png" alt="Réalisation 2">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/3.png" alt="Réalisation 3">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/4.png" alt="Réalisation 4">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/5.png" alt="Réalisation 5">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/6.png" alt="Réalisation 6">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <!-- Duplicate for infinite scroll -->
+        <div class="gallery-item">
+          <img src="img/carousel/1.png" alt="Réalisation 1">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/2.png" alt="Réalisation 2">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+        <div class="gallery-item">
+          <img src="img/carousel/3.png" alt="Réalisation 3">
+          <div class="gallery-overlay">
+            <span>Voir plus</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section id="services" class="services-section">
+    <div class="section-header">
+      <span class="section-tag">Services</span>
+      <h2 class="section-title">Nos catalogues</h2>
+    </div>
+    <div class="services-grid">
+      <div class="service-card" data-tilt>
+        <div class="service-number">01</div>
+        <div class="service-content">
+          <h3>Hommes</h3>
+          <p>Coupes masculines modernes et classiques, adaptées à votre style et à votre personnalité.</p>
+          <a href="hommes.html" class="service-link">
+            <span>Explorer</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
+      </div>
+      <div class="service-card" data-tilt>
+        <div class="service-number">02</div>
+        <div class="service-content">
+          <h3>Femmes</h3>
+          <p>Coupes féminines tendances et uniques, pour révéler votre beauté naturelle.</p>
+          <a href="femmes.html" class="service-link">
+            <span>Explorer</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="service-bg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team-section">
+    <div class="section-header">
+      <span class="section-tag">Équipe</span>
+      <h2 class="section-title">Rencontrez nos experts</h2>
+    </div>
+    <div class="team-grid" id="teamGrid">
+      <!-- Team members will be loaded dynamically -->
+    </div>
+  </section>
+
+  <!-- Map Section -->
+  <section class="location-section">
+    <div class="section-header">
+      <span class="section-tag">Localisation</span>
+      <h2 class="section-title">Nous trouver</h2>
+    </div>
+    <div class="location-container">
+      <div class="location-map">
+        <img src="img/map.png" alt="Carte">
+      </div>
+      <div class="location-addresses">
+        <div class="address-item">
+          <h3>Coiffeur</h3>
+          <p>📍 Magellan Avenue, Vespucci</p>
+        </div>
+        <div class="address-item">
+          <h3>Tatoueur</h3>
+          <p>📍 Aguja Street & Bay City Avenue</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews Section -->
+  <section class="reviews-section">
+    <div class="section-header">
+      <span class="section-tag">Témoignages</span>
+      <h2 class="section-title">Ce que disent nos clients</h2>
+    </div>
+    <div class="reviews-container">
+      <div class="reviews-track" id="reviewsTrack">
+        <!-- Reviews will be randomly shuffled by JavaScript -->
+      </div>
+    </div>
+    <div class="reviews-cta">
+      <a href="#" class="btn btn-outline" id="openReviewModal">Écrire un avis</a>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="faq-section">
+    <div class="section-header">
+      <span class="section-tag">FAQ</span>
+      <h2 class="section-title">Questions fréquentes</h2>
+    </div>
+    <div class="faq-container">
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Comment faire pour se faire recruter ?</h3>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Nous privilégions les rencontres spontanées !</p>
+          <p><strong>Recrutement sans CV :</strong> Si tu es motivé(e) et que tu penses correspondre à notre équipe, viens directement nous rencontrer. Nous te donnerons toujours une date et une heure à l'avance pour nous rencontrer.</p>
+          <p><strong>Recrutement sur le moment :</strong> En fonction des besoins, nous recrutons parfois directement sur place. Sois prêt(e) à nous surprendre !</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Quels services proposez-vous exactement ?</h3>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Nous proposons trois univers complémentaires :</p>
+          <p><strong>Coiffure :</strong> coupes, colorations, soins capillaires</p>
+          <p><strong>Tatouage :</strong> Projets personnalisés et tatouages réalisés dans le respect des normes d'hygiène.</p>
+          <p><strong>Spa :</strong> soins relaxants, massages</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-question">
+          <h3>Comment faire pour nous contacter en cas de besoin ?</h3>
+          <span class="faq-icon">+</span>
+        </div>
+        <div class="faq-answer">
+          <p><strong>Réponse :</strong> Tu peux nous contacter de plusieurs façons :</p>
+          <p><strong>Par notre central :</strong> Appelle nous directement pour toute demande.</p>
+          <p><strong>Via nos réseaux sociaux :</strong> Nous sommes disponibles sur Instapics, birdy pour répondre à toutes tes questions.</p>
+          <p>Nous sommes là pour toi, n'hésite pas à nous écrire !</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Passage de Relais Section -->
+  <section class="heritage-section">
+    <div class="heritage-container">
+      <div class="heritage-content">
+        <div class="heritage-image-wrapper">
+          <img src="img/Capture_decran_2025-11-25_223738.png" alt="Passage de Relais - Équipe Vespucci" class="heritage-image">
+        </div>
+        <h2 class="heritage-title">Passage de relais et Héritage à l'Esthétique Vespucci</h2>
+        <div class="heritage-text">
+          <p>C'est avec joie et fierté que Soren Wanks et Julio Alvarez annoncent la reprise de l'Esthétique Vespucci le 19.11.2025 !</p>
+          <p>Ce n'est pas seulement un passage de relais professionnel, mais une histoire d'amitié et de respect. Nous remercions chaleureusement Romy Miller pour tout ce qu'elle a créé, sa passion, son exigence et la bienveillance qu'elle a toujours partagée. ❤️</p>
+          <p>Nous avons à cœur de préserver son esprit et son savoir-faire tout en y apportant notre touche personnelle.</p>
+          <p class="heritage-memory">En mémoire de Gonzalo Delgado, dont la passion et l'héritage continueront de nous inspirer dans chaque projet. Repose en paix ! 🕊️</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <a href="accueil.html" class="footer-logo">
+          <img src="img/V.png" alt="Logo Vespucci" class="footer-logo-image">
+          <div class="footer-logo-text-wrapper">
+            <span class="footer-logo-text">VESPUCCI</span>
+            <span class="footer-logo-subtitle">ESTHÉTIQUE</span>
+          </div>
+        </a>
+        <p>L'Esthétique Vespucci © 2025</p>
+      </div>
+      <div class="footer-links">
+        <a href="accueil.html">Accueil</a>
+        <a href="femmes.html">Femmes</a>
+        <a href="tarifs.html">Tarifs</a>
+        <a href="hommes.html">Hommes</a>
+        <a href="partenaires.html">Partenaires</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Fixed CTA Buttons -->
+  <button class="scroll-to-top" id="scrollToTop" aria-label="Retour en haut">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
+  <a href="#" class="fixed-cta" id="openFixedBookingModal">
+    <span class="cta-text">Réserver</span>
+  </a>
+
+  <!-- Modals -->
+  <div id="bookingModal" class="modal">
+    <div class="modal-content booking-modal-content">
+      <button class="modal-close" id="closeBookingModal">&times;</button>
+      <div class="booking-header">
+        <h2>Prendre rendez-vous</h2>
+        <p class="booking-subtitle">Contactez-nous pour réserver votre créneau</p>
+      </div>
+      
+      <div class="booking-section">
+        <div class="booking-section-header">
+          <span class="booking-icon">💬</span>
+          <h3>Discord</h3>
+        </div>
+        <a href="https://discord.gg/qgWzv3uZ" target="_blank" class="discord-button">
+          <span>Rejoindre notre Discord</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+        </a>
+      </div>
+      
+      <div class="booking-section">
+        <div class="booking-section-header">
+          <span class="booking-icon">📞</span>
+          <h3>Contacter un employé</h3>
+        </div>
+        <div id="teamContacts" class="team-contacts-list">
+          <!-- Les contacts seront chargés dynamiquement -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="reviewModal" class="modal">
+    <div class="modal-content booking-modal-content">
+      <button class="modal-close" id="closeReviewModal">&times;</button>
+      <div class="booking-header">
+        <h2>Écrire un avis</h2>
+        <p class="booking-subtitle">Partagez votre expérience avec nous sur Discord</p>
+      </div>
+      
+      <div class="booking-section">
+        <div class="booking-section-header">
+          <span class="booking-icon">💬</span>
+          <h3>Discord</h3>
+        </div>
+        <a href="https://discord.gg/qgWzv3uZ" target="_blank" class="discord-button">
+          <span>Rejoindre notre Discord</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Mobile Navigation Toggle - S'exécute immédiatement
+    (function() {
+      const burger = document.getElementById('burger');
+      const navbar = document.querySelector('.navbar');
+      const mobileCloseBtn = document.querySelector('.mobile-close-btn');
+      
+      if (!burger || !navbar) return;
+      
+      // Fonction pour ouvrir/fermer le menu
+      function toggleMenu() {
+        burger.classList.toggle('active');
+        navbar.classList.toggle('active');
+        document.body.style.overflow = navbar.classList.contains('active') ? 'hidden' : '';
+      }
+      
+      // Event listener pour le burger
+      burger.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMenu();
+      });
+      
+      // Event listener pour le bouton de fermeture
+      if (mobileCloseBtn) {
+        mobileCloseBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+      
+      // Fermer le menu quand on clique sur un lien
+      const navLinks = document.querySelectorAll('.nav-link');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      });
+      
+      // Fermer le menu quand on clique en dehors
+      document.addEventListener('click', function(e) {
+        if (navbar.classList.contains('active') && 
+            !navbar.contains(e.target) && 
+            !burger.contains(e.target)) {
+          burger.classList.remove('active');
+          navbar.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    })();
+  </script>
+  <script src="assets/faq.js" defer></script>
+  <script src="assets/reviews.js" defer></script>
+  <script>
+    // Force scroll to top on page load/refresh
+    window.addEventListener('beforeunload', () => {
+      window.scrollTo(0, 0);
+    });
+    
+    window.addEventListener('load', () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+    
+    // Navigation Toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.querySelector('.nav-links');
+    
+    if (navToggle) {
+      navToggle.addEventListener('click', () => {
+        navLinks.classList.toggle('active');
+        navToggle.classList.toggle('active');
+      });
+    }
+
+    // Gallery Lightbox - Initial attachment
+    // This is handled by attachGalleryLightboxEvents() which is called after updateGalleryImages()
+    // Wait for gallery to be updated, then attach events
+    setTimeout(() => {
+      attachGalleryLightboxEvents();
+    }, 200);
+
+    // Gallery Pause on Hover
+    const galleryTrack = document.querySelector('.gallery-track');
+    if (galleryTrack) {
+      galleryTrack.addEventListener('mouseenter', () => {
+        galleryTrack.style.animationPlayState = 'paused';
+      });
+      
+      galleryTrack.addEventListener('mouseleave', () => {
+        galleryTrack.style.animationPlayState = 'running';
+      });
+    }
+
+    // Random Reviews Shuffle
+    const reviewsData = [
+      { title: "Excellence au rendez-vous", text: "J'ai passé un excellent moment entre les mains expertes. Votre professionnalisme, votre patience et votre attention aux détails font toute la différence. Vous avez su comprendre exactement ce que je voulais et le résultat est au-delà de mes attentes !", author: "Young Euphon" },
+      { title: "Un travail incroyable", text: "Je tiens à dire un immense merci à toute l'équipe de l'Esthétique Vespucci. Dès mon arrivée, j'ai été accueilli avec un grand sourire et une bonne humeur communicative. Le résultat est juste incroyable : le trait est net, les ombrages sont magnifiques.", author: "Tyler Jackson" },
+      { title: "Super tatoueur", text: "Franchement, un super tatoueur : pro, talentueux, et en plus super sympa et drôle. Le résultat est top, rien à redire sur le taf, c'est propre, précis, vraiment du bon boulot.", author: "Ezekiel Buck" },
+      { title: "Très belle accueil", text: "Rien à dire très belle accueil, bonne humeur on rigole super bien il met ses clients bien à l'aise. Très professionnel, je recommande et je reviendrais. Il nous donne des coupes très magnifiques.", author: "Lazaro Navarro" },
+      { title: "Coiffeur souriant", text: "Coiffeur souriant, professionnel de bonne humeur qui donne d'excellents conseils. Je recommande vivement !", author: "Finley Winters" },
+      { title: "Coiffeuse incroyable", text: "Coiffeuse incroyable, très professionnelle, très patiente. Merci pour les coupes !", author: "Ava Brown" },
+      { title: "Tatouage personnalisé", text: "Un grand merci pour le tatouage custom. Ton travail est vraiment incroyable, tu as parfaitement su donner vie à mon idée et le résultat dépasse toutes mes attentes. Je suis super fier de le porter !", author: "Ryuji Shiranui" },
+      { title: "Très satisfait", text: "Merci beaucoup pour ce tatouage personnalisé. J'apprécie vraiment le temps, l'écoute et le soin que tu as apportés pour créer cette pièce. Le résultat est exactement ce que j'espérais.", author: "Léon Dawson" },
+      { title: "Accueillante et professionnelle", text: "Accueillante, respectueuse, professionnelle, très charmante. Une expérience parfaite !", author: "Jayden Lebs" },
+      { title: "Merci pour cette expérience", text: "Merci à @wSmok pour cette magnifique expérience au sein de l'esthétique vespucci.", author: "J2✞NR" },
+      { title: "Trop cool", text: "Il est trop cool bonne humeur rapide enfaite juste le meilleur.", author: "Benett Tilio" },
+      { title: "MAIS COMMENT FAIT T'IL", text: "MAIS COMMENT FAIT T'IL POUR ETRE SI PARFAIT bonne humeur rapide enfaite juste le meilleur.", author: "Benett Tilio" },
+      { title: "Parfait", text: "Parfait ce mec sérieux.", author: "Jayden Lebs" },
+      { title: "Parfait et professionnel", text: "Parfait ce mec sérieux poli et très professionnel parfait quoi.", author: "Jonasse mantilla" },
+      { title: "Inégalable", text: "Inégalable, merci pour tout t'es le meilleur fréro.", author: "Ivar Muchadov" },
+      { title: "La goat", text: "La goat incroyable et grave sympathique.", author: "Henry Smith" },
+      { title: "Franchement incroyable", text: "Franchement si j'avais pas de limite les étoiles serait infini la goat pour le coup gentil, sans prise de tête, sympa mais qui est elle serait t'elle pas juste la goat non vraiment une très bonne personne.", author: "Shavonn" },
+      { title: "GOOD KOUAFEUR", text: "GOOD KOUAFEUR", author: "LEON" },
+      { title: "Pas mal le coiffeur", text: "Pas mal le coiffeur la famille.", author: "Wyatt" },
+      { title: "Rapide efficace", text: "Rapide efficace", author: "Jayden" },
+      { title: "Meilleur coiffeur", text: "Meilleur coiffeur la famille", author: "Tricky" },
+      { title: "Un bon RH", text: "Un de ces bon RH, J'ai rarrement vu ça dans ma lonnnngue vie ! BIG UP", author: "POWD3R" },
+      { title: "Bon tatoueur/coiffeur", text: "Emilio est un bon tatoueur/coiffeur patient et l'écoute", author: "Koda Smith" },
+      { title: "Super, parfaitement à l'écoute", text: "Super, parfaitement à l'écoute !!", author: "Camilo Osorio" },
+      { title: "Incroyable", text: "Incroyable, vraiment super bon conseil, à l'écoute, au top", author: "Camila Osorio" },
+      { title: "Incroyable travail", text: "Incroyable, vraiment un bonbon cette femme, un travail rapide et efficace merci a toi!!!", author: "Kassy Payne" },
+      { title: "Rapide et efficace", text: "Rapide/efficace et un résulta parfait", author: "Russel Blood" },
+      { title: "Dessinateur et Tatoueuse INCROYABLE", text: "Dessinateur et Tatoueuse INCROYABLE ! (Bref venez faire vos tatoos ici)", author: "Sån•PnK" },
+      { title: "Meilleur tatoueur", text: "Ce mec est fou meilleur tatoueur en ville", author: "Synthia Papaya" },
+      { title: "Coiffeur d'une gentillesse", text: "Jayden est un coiffeur d'une gentillesse et d'une patience, je vous le recommande.", author: "Moly" },
+      { title: "Très professionnelle", text: "Très professionnelle, patiente et à l'écoute", author: "Alma-Rosa" },
+      { title: "Résultat très propres", text: "Très professionnelle, je recommande pour faire nos coiffure résultat très propres !", author: "James Walter" },
+      { title: "Super bien conseillé", text: "Il a super bien conseillé mon employée ! Il a pris le temps de l'écouter et de la guider pour trouver la coiffure qui lui va parfaitement. On est vraiment ravis du résultat, merci encore !", author: "Zion Braxton" },
+      { title: "Cool", text: "Cool", author: "lazaro" },
+      { title: "De bon conseils", text: "De bon conseils, à l'ecoute travaille de pro !", author: "Zaëly Cruz" },
+      { title: "Tatouage et coiffure impect", text: "Tatouage et coiffure impect, je recommande !", author: "Lyam Seals" },
+      { title: "Rapide simple efficace", text: "Rapide simple efficace", author: "Riley parks" },
+      { title: "Efficace et pas chère", text: "Efficace et pas chère, c'est Aiden que je préfère", author: "Rafael moretti" },
+      { title: "Merci pour les tattoos", text: "Merci beaucoup pour les tattoos ils me conviennent parfaitement, accueillant et très gentil", author: "Anthonio Gomez" },
+      { title: "Bonne accueil", text: "Bonne accueil de la part de ce coiffeur, même à cette heure-ci, je recommande fortement pour son professionnalisme.", author: "Amber Clarke" },
+      { title: "Accueillant et professionnel", text: "Accueillant, sympa, et professionnel. Tout simplement un goat", author: "Granit Berisha" },
+      { title: "Super moment", text: "J'ai passé un super moment à l'esthétique Vespucci ! Accueil chaleureux, ambiance détendue et résultat impeccable. Mention spéciale à Michou, qui s'est occupé de ma coupe avec beaucoup de soin et de talent.", author: "efraim" },
+      { title: "Patiente, trop la goatt", text: "Patiente, trop la goatt enfainte", author: "Kaelen Winslow" },
+      { title: "Nickel", text: "Nickel, rien à dire.", author: "Owen Davis" }
+    ];
+
+    // Fisher-Yates shuffle algorithm
+    function shuffleArray(array) {
+      const shuffled = [...array];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    // Generate and shuffle reviews
+    const reviewsTrack = document.getElementById('reviewsTrack');
+    if (reviewsTrack) {
+      // Shuffle reviews
+      const shuffledReviews = shuffleArray(reviewsData);
+      
+      // Create review cards
+      function createReviewCard(review) {
+        return `
+          <div class="review-card">
+            <div class="review-stars">★★★★★</div>
+            <h3>${review.title}</h3>
+            <p>${review.text}</p>
+            <div class="review-author">— ${review.author}</div>
+            </div>
+          `;
+      }
+      
+      // Add shuffled reviews (duplicate for seamless loop)
+      const reviewsHTML = shuffledReviews.map(createReviewCard).join('');
+      reviewsTrack.innerHTML = reviewsHTML + reviewsHTML;
+      
+      // Optimize animation speed for mobile
+      function updateAnimationSpeed() {
+        const width = window.innerWidth;
+        let animationDuration = '180s';
+        
+        if (width <= 400) {
+          animationDuration = '90s';
+        } else if (width <= 480) {
+          animationDuration = '100s';
+        }
+        
+        reviewsTrack.style.animation = `scrollReviews ${animationDuration} linear infinite`;
+      }
+      
+      updateAnimationSpeed();
+      
+      // Update on resize
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateAnimationSpeed, 250);
+      });
+      
+      // Force hardware acceleration for better performance
+      reviewsTrack.style.willChange = 'transform';
+      reviewsTrack.style.backfaceVisibility = 'hidden';
+      reviewsTrack.style.webkitBackfaceVisibility = 'hidden';
+    }
+
+    // Modal Handling
+    const openBookingModal = document.getElementById('openBookingModal');
+    const openFixedBookingModal = document.getElementById('openFixedBookingModal');
+    const openReviewModal = document.getElementById('openReviewModal');
+    const bookingModal = document.getElementById('bookingModal');
+    const reviewModal = document.getElementById('reviewModal');
+    const closeBookingModal = document.getElementById('closeBookingModal');
+    const closeReviewModal = document.getElementById('closeReviewModal');
+
+    // Charger les contacts des employés dans le modal depuis Firebase/localStorage
+    async function loadTeamContacts() {
+      const teamContactsDiv = document.getElementById('teamContacts');
+      if (!teamContactsDiv) return;
+      
+      // Charger D'ABORD depuis localStorage/Firebase (priorité à la base de données)
+      let teamMembers = JSON.parse(localStorage.getItem('team_members') || '[]');
+      
+      // Si pas de données dans localStorage, essayer le JSON statique en fallback
+      if (teamMembers.length === 0) {
+        try {
+          const response = await fetch('team-members.json');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.team_members && Array.isArray(data.team_members)) {
+              teamMembers = data.team_members;
+              // Sauvegarder dans localStorage pour la prochaine fois
+              localStorage.setItem('team_members', JSON.stringify(teamMembers));
+            }
+          }
+        } catch (error) {
+        }
+      }
+      
+      // Get deleted members
+      const deletedMembers = JSON.parse(localStorage.getItem('deleted_team_members') || '[]');
+      
+      // Filtrer les membres supprimés
+      const allMembers = teamMembers.filter(m => !deletedMembers.includes(m.id));
+      
+      teamContactsDiv.innerHTML = '';
+      allMembers.forEach(member => {
+        if (member.phone) {
+          const fullName = `${member.firstName || ''} ${member.lastName || ''}`.trim();
+          const phone = member.phone.trim();
+          const contactCard = document.createElement('div');
+          contactCard.className = 'contact-card';
+          contactCard.innerHTML = `
+            <div class="contact-info">
+              <div class="contact-name">${fullName || 'Employé'}</div>
+              <div class="contact-grade">${member.grade || ''}</div>
+            </div>
+            <a href="#" class="contact-phone-button" data-phone="${phone}">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 0.5rem;">
+                <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+              </svg>
+              ${phone}
+            </a>
+          `;
+          teamContactsDiv.appendChild(contactCard);
+          
+          // Ajouter le gestionnaire d'événement pour copier le numéro
+          const phoneButton = contactCard.querySelector('.contact-phone-button');
+          phoneButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const phoneNumber = this.getAttribute('data-phone');
+            if (phoneNumber) {
+              navigator.clipboard.writeText(phoneNumber).then(() => {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 0.5rem;"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>Copié !';
+                this.style.background = 'var(--primary)';
+                setTimeout(() => {
+                  this.innerHTML = originalText;
+                  this.style.background = '';
+                }, 2000);
+              }).catch(() => {
+                alert('Numéro: ' + phoneNumber);
+              });
+            }
+          });
+        }
+      });
+    }
+    
+    function openModal(modal) {
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        // Charger les contacts quand le modal s'ouvre
+        if (modal.id === 'bookingModal') {
+          loadTeamContacts();
+        }
+      }
+    }
+
+    function closeModal(modal) {
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    if (openBookingModal) openBookingModal.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (openFixedBookingModal) openFixedBookingModal.addEventListener('click', (e) => { e.preventDefault(); openModal(bookingModal); });
+    if (openReviewModal) openReviewModal.addEventListener('click', (e) => { e.preventDefault(); openModal(reviewModal); });
+    if (closeBookingModal) closeBookingModal.addEventListener('click', () => closeModal(bookingModal));
+    if (closeReviewModal) closeReviewModal.addEventListener('click', () => closeModal(reviewModal));
+
+    [bookingModal, reviewModal].forEach(modal => {
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal(modal);
+        });
+      }
+    });
+
+    // Smooth Scroll
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href === '#') return;
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Parallax Effect - Désactivé pour garder les images fixes
+    // function updateParallax() {
+    //   const scrolled = window.pageYOffset || window.scrollY || 0;
+    //   const heroVisual = document.querySelector('.hero-visual');
+    //   if (heroVisual) {
+    //     heroVisual.style.transform = `translateY(${-35 + scrolled * 0.3}px)`;
+    //   }
+    // }
+    
+    // Initialize parallax on load
+    // updateParallax();
+    
+    // window.addEventListener('scroll', updateParallax, { passive: true });
+
+    // Hide fixed CTA button near footer
+    function handleFixedCTA() {
+      const fixedCTA = document.querySelector('.fixed-cta');
+      const scrollToTopBtn = document.querySelector('.scroll-to-top');
+      const footer = document.querySelector('.main-footer');
+      if (fixedCTA && footer) {
+        const footerTop = footer.offsetTop;
+        const windowBottom = window.pageYOffset + window.innerHeight;
+        const distanceToFooter = footerTop - windowBottom;
+        
+        if (distanceToFooter < 150) {
+          fixedCTA.style.opacity = '0';
+          fixedCTA.style.pointerEvents = 'none';
+          if (scrollToTopBtn) {
+            scrollToTopBtn.style.opacity = '0';
+            scrollToTopBtn.style.pointerEvents = 'none';
+          }
+        } else {
+          fixedCTA.style.opacity = '1';
+          fixedCTA.style.pointerEvents = 'auto';
+          if (scrollToTopBtn && scrollToTopBtn.classList.contains('visible')) {
+            scrollToTopBtn.style.opacity = '1';
+            scrollToTopBtn.style.pointerEvents = 'auto';
+          }
+        }
+      }
+    }
+    
+    window.addEventListener('scroll', handleFixedCTA, { passive: true });
+    handleFixedCTA();
+
+    // Scroll to Top Button
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    if (scrollToTopBtn) {
+      function handleScrollToTop() {
+        const footer = document.querySelector('.main-footer');
+        let nearFooter = false;
+        
+        // Vérifier si on est près du footer
+        if (footer) {
+          const footerTop = footer.offsetTop;
+          const windowBottom = window.pageYOffset + window.innerHeight;
+          const distanceToFooter = footerTop - windowBottom;
+          nearFooter = distanceToFooter < 150;
+        }
+        
+        // Cacher le bouton si on est en haut de la page OU près du footer
+        if (window.pageYOffset > 300 && !nearFooter) {
+          scrollToTopBtn.classList.add('visible');
+          // Retirer les styles inline pour permettre au CSS de fonctionner
+          scrollToTopBtn.style.opacity = '';
+          scrollToTopBtn.style.pointerEvents = '';
+        } else {
+          scrollToTopBtn.classList.remove('visible');
+          // S'assurer que le bouton est bien caché
+          scrollToTopBtn.style.opacity = '0';
+          scrollToTopBtn.style.pointerEvents = 'none';
+        }
+      }
+
+      scrollToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+
+      window.addEventListener('scroll', handleScrollToTop, { passive: true });
+      // Vérifier l'état initial au chargement
+      handleScrollToTop();
+    }
+
+    // 3D Tilt Effect
+    document.querySelectorAll('[data-tilt]').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        const rotateX = (y - centerY) / 25;
+        const rotateY = (centerX - x) / 25;
+        
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+      });
+      
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+      });
+    });
+  </script>
+
+  <style>
+    .booking-modal-content {
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2.5rem;
+    }
+
+    .booking-modal-content::-webkit-scrollbar {
+      display: none;
+      width: 0;
+    }
+
+    .booking-modal-content {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .booking-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .booking-header h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .booking-subtitle {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .booking-section {
+      margin-bottom: 2rem;
+    }
+
+    .booking-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .booking-section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .booking-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .booking-section-header h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+
+    .discord-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+    }
+
+    .discord-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(88, 101, 242, 0.4);
+    }
+
+    .discord-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .team-contacts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .contact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .contact-card:hover {
+      border-color: var(--primary);
+      transform: translateX(5px);
+      box-shadow: 0 4px 15px rgba(32, 178, 170, 0.15);
+    }
+
+    .contact-info {
+      flex: 1;
+    }
+
+    .contact-name {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .contact-grade {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .contact-phone-button {
+      display: flex;
+      align-items: center;
+      background: var(--primary);
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .contact-phone-button:hover {
+      background: var(--primary-light);
+      transform: scale(1.05);
+      box-shadow: 0 4px 15px rgba(32, 178, 170, 0.3);
+    }
+
+    .contact-phone-button svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    @media (max-width: 768px) {
+      .booking-modal-content {
+        padding: 2rem 1.5rem;
+      }
+
+      .booking-header h2 {
+        font-size: 1.75rem;
+      }
+
+      .contact-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .contact-phone-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</body>
+</html>
+
