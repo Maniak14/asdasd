@@ -289,9 +289,8 @@ body {
   position: relative;
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   padding: 8rem 2rem 4rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -300,10 +299,9 @@ body {
 }
 
 .hero-content {
-  width: 100%;
-  max-width: 800px;
+  flex: 1;
+  max-width: 600px;
   z-index: 2;
-  text-align: center;
 }
 
 .hero-badge {
@@ -457,25 +455,11 @@ body {
 }
 
 .hero-visual {
-  width: 100%;
+  flex: 1;
+  max-width: 500px;
   position: relative;
   z-index: 2;
-}
-
-.hero-visual-container {
-  display: flex;
-  gap: 1rem;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-}
-
-.hero-visual-container .hero-image {
-  flex: 1;
-  max-width: calc(16.666% - 0.83rem);
-  height: auto;
-  object-fit: cover;
-  border-radius: 20px;
+  transform: translateY(-80px);
 }
 
 .hero-image-wrapper {
@@ -1383,16 +1367,6 @@ section {
     max-width: 100%;
   }
 
-  .hero-visual-container {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .hero-visual-container .hero-image {
-    max-width: calc(50% - 0.25rem);
-    flex: 0 0 calc(50% - 0.25rem);
-  }
-
   .floating-card {
     display: none;
   }
@@ -1444,16 +1418,6 @@ section {
 
   .hero {
     padding: 6rem 1.5rem 3rem;
-  }
-
-  .hero-visual-container {
-    gap: 0.5rem;
-  }
-
-  .hero-visual-container .hero-image {
-    max-width: calc(50% - 0.25rem);
-    flex: 0 0 calc(50% - 0.25rem);
-    border-radius: 15px;
   }
 
   .hero-cta {
